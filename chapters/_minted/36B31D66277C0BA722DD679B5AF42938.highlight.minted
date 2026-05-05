@@ -1,0 +1,26 @@
+\begin{MintedVerbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8\relax}]
+\PYG{k+kn}{from}\PYG{+w}{ }\PYG{n+nn}{trl}\PYG{+w}{ }\PYG{k+kn}{import} \PYG{n}{SFTTrainer}\PYG{p}{,} \PYG{n}{SFTConfig}
+
+\PYG{n}{trainer} \PYG{o}{=} \PYG{n}{SFTTrainer}\PYG{p}{(}
+    \PYG{n}{model}\PYG{o}{=}\PYG{n}{model}\PYG{p}{,}
+    \PYG{n}{tokenizer}\PYG{o}{=}\PYG{n}{tokenizer}\PYG{p}{,}
+    \PYG{n}{train\PYGZus{}dataset}\PYG{o}{=}\PYG{n}{dataset}\PYG{p}{,}
+    \PYG{n}{args}\PYG{o}{=}\PYG{n}{SFTConfig}\PYG{p}{(}
+        \PYG{n}{per\PYGZus{}device\PYGZus{}train\PYGZus{}batch\PYGZus{}size}\PYG{o}{=}\PYG{l+m+mi}{2}\PYG{p}{,}
+        \PYG{n}{gradient\PYGZus{}accumulation\PYGZus{}steps}\PYG{o}{=}\PYG{l+m+mi}{4}\PYG{p}{,}
+        \PYG{n}{warmup\PYGZus{}steps}\PYG{o}{=}\PYG{l+m+mi}{5}\PYG{p}{,}
+        \PYG{n}{max\PYGZus{}steps}\PYG{o}{=}\PYG{l+m+mi}{30}\PYG{p}{,}
+        \PYG{n}{learning\PYGZus{}rate}\PYG{o}{=}\PYG{l+m+mf}{2e\PYGZhy{}4}\PYG{p}{,}
+        \PYG{n}{logging\PYGZus{}steps}\PYG{o}{=}\PYG{l+m+mi}{1}\PYG{p}{,}
+        \PYG{n}{output\PYGZus{}dir}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}outputs\PYGZdq{}}\PYG{p}{,}
+        \PYG{n}{optim}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}adamw\PYGZus{}8bit\PYGZdq{}}\PYG{p}{,}
+        \PYG{n}{seed}\PYG{o}{=}\PYG{l+m+mi}{42}\PYG{p}{,}
+        \PYG{n}{report\PYGZus{}to}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}none\PYGZdq{}}\PYG{p}{,}
+        \PYG{n}{max\PYGZus{}seq\PYGZus{}length}\PYG{o}{=}\PYG{n}{max\PYGZus{}seq\PYGZus{}length}\PYG{p}{,}
+    \PYG{p}{),}
+\PYG{p}{)}
+
+\PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Starting training...\PYGZdq{}}\PYG{p}{)}
+\PYG{n}{stats} \PYG{o}{=} \PYG{n}{trainer}\PYG{o}{.}\PYG{n}{train}\PYG{p}{()}
+\PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Done! Final loss: }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{stats}\PYG{o}{.}\PYG{n}{training\PYGZus{}loss}\PYG{l+s+si}{:}\PYG{l+s+s2}{.4f}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+\end{MintedVerbatim}

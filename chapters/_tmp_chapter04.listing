@@ -1,0 +1,24 @@
+from trl import SFTTrainer, SFTConfig
+
+trainer = SFTTrainer(
+    model=model,
+    tokenizer=tokenizer,
+    train_dataset=dataset,
+    args=SFTConfig(
+        per_device_train_batch_size=2,
+        gradient_accumulation_steps=4,
+        warmup_steps=5,
+        max_steps=30,
+        learning_rate=2e-4,
+        logging_steps=1,
+        output_dir="outputs",
+        optim="adamw_8bit",
+        seed=42,
+        report_to="none",
+        max_seq_length=max_seq_length,
+    ),
+)
+
+print("Starting training...")
+stats = trainer.train()
+print(f"Done! Final loss: {stats.training_loss:.4f}")

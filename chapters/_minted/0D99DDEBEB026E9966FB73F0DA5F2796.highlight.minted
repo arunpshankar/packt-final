@@ -1,0 +1,55 @@
+\begin{MintedVerbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8\relax}]
+\PYG{k+kn}{from}\PYG{+w}{ }\PYG{n+nn}{datasets}\PYG{+w}{ }\PYG{k+kn}{import} \PYG{n}{Dataset}
+
+\PYG{n}{train\PYGZus{}data} \PYG{o}{=} \PYG{p}{[}
+    \PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}messages\PYGZdq{}}\PYG{p}{:} \PYG{p}{[}
+        \PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}role\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}user\PYGZdq{}}\PYG{p}{,}
+         \PYG{l+s+s2}{\PYGZdq{}content\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}What is RL?\PYGZdq{}}\PYG{p}{\PYGZcb{},}
+        \PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}role\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}assistant\PYGZdq{}}\PYG{p}{,}
+         \PYG{l+s+s2}{\PYGZdq{}content\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}Reinforcement learning is a type \PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}of machine learning where an agent learns \PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}by interacting with an environment and \PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}receiving rewards for good actions.\PYGZdq{}}\PYG{p}{\PYGZcb{}}
+    \PYG{p}{]\PYGZcb{},}
+    \PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}messages\PYGZdq{}}\PYG{p}{:} \PYG{p}{[}
+        \PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}role\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}user\PYGZdq{}}\PYG{p}{,}
+         \PYG{l+s+s2}{\PYGZdq{}content\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}What is a policy in RL?\PYGZdq{}}\PYG{p}{\PYGZcb{},}
+        \PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}role\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}assistant\PYGZdq{}}\PYG{p}{,}
+         \PYG{l+s+s2}{\PYGZdq{}content\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}A policy is the strategy an agent \PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}uses to decide what action to take. It maps \PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}states to probability distributions \PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}over actions.\PYGZdq{}}\PYG{p}{\PYGZcb{}}
+    \PYG{p}{]\PYGZcb{},}
+    \PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}messages\PYGZdq{}}\PYG{p}{:} \PYG{p}{[}
+        \PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}role\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}user\PYGZdq{}}\PYG{p}{,}
+         \PYG{l+s+s2}{\PYGZdq{}content\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}What is a reward signal?\PYGZdq{}}\PYG{p}{\PYGZcb{},}
+        \PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}role\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}assistant\PYGZdq{}}\PYG{p}{,}
+         \PYG{l+s+s2}{\PYGZdq{}content\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}A reward signal is feedback from \PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}the environment telling the agent how good \PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}or bad its action was. The agent tries to \PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}maximize total reward.\PYGZdq{}}\PYG{p}{\PYGZcb{}}
+    \PYG{p}{]\PYGZcb{},}
+    \PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}messages\PYGZdq{}}\PYG{p}{:} \PYG{p}{[}
+        \PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}role\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}user\PYGZdq{}}\PYG{p}{,}
+         \PYG{l+s+s2}{\PYGZdq{}content\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}What is the value function?\PYGZdq{}}\PYG{p}{\PYGZcb{},}
+        \PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}role\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}assistant\PYGZdq{}}\PYG{p}{,}
+         \PYG{l+s+s2}{\PYGZdq{}content\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}The value function estimates the \PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}expected total future reward from a given \PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}state. It tells the agent how good its \PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}current situation is on average.\PYGZdq{}}\PYG{p}{\PYGZcb{}}
+    \PYG{p}{]\PYGZcb{},}
+    \PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}messages\PYGZdq{}}\PYG{p}{:} \PYG{p}{[}
+        \PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}role\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}user\PYGZdq{}}\PYG{p}{,}
+         \PYG{l+s+s2}{\PYGZdq{}content\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}Difference between SFT and RLHF?\PYGZdq{}}\PYG{p}{\PYGZcb{},}
+        \PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}role\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}assistant\PYGZdq{}}\PYG{p}{,}
+         \PYG{l+s+s2}{\PYGZdq{}content\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}SFT teaches a model by showing it \PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}good examples to imitate. RLHF goes further \PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}by letting the model generate responses and \PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}learning from human preferences about which \PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}responses are better.\PYGZdq{}}\PYG{p}{\PYGZcb{}}
+    \PYG{p}{]\PYGZcb{},}
+\PYG{p}{]}
+
+\PYG{n}{dataset} \PYG{o}{=} \PYG{n}{Dataset}\PYG{o}{.}\PYG{n}{from\PYGZus{}list}\PYG{p}{(}\PYG{n}{train\PYGZus{}data}\PYG{p}{)}
+\PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Dataset size: }\PYG{l+s+si}{\PYGZob{}}\PYG{n+nb}{len}\PYG{p}{(}\PYG{n}{dataset}\PYG{p}{)}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{ examples\PYGZdq{}}\PYG{p}{)}
+\end{MintedVerbatim}

@@ -1,0 +1,36 @@
+# Simple evaluation: check if model produces think tags
+# and correct answers on held-out examples
+eval_prompts = [
+    ("What is 12% of 300?", "36"),
+    ("Solve: 4x = 28", "7"),
+    ("Is 29 prime?", "yes"),
+]
+
+correct = 0
+has_think_tags = 0
+
+for prompt, expected in eval_prompts:
+    messages = [{"role": "user", "content": prompt}]
+    inputs = tokenizer.apply_chat_template(
+        messages,
+        tokenize = True,
+        add_generation_prompt = True,
+        return_tensors = "pt",
+    ).to("cuda")
+    output_ids = model.generate(
+        input_ids = inputs,
+        max_new_tokens = 512,
+        temperature = 0.1,  # Low temp for evaluation
+    )
+    response = tokenizer.decode(
+        output_ids[0][inputs.shape[1]:],
+        skip_special_tokens = True
+    )
+
+    if "<think>" in response and "</think>" in response:
+        has_think_tags += 1
+    if expected.lower() in response.lower():
+        correct += 1
+
+print(f"Think-tag compliance: {has_think_tags}/{len(eval_prompts)}")
+print(f"Answer accuracy: {correct}/{len(eval_prompts)}")

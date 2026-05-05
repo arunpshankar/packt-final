@@ -1,0 +1,125 @@
+\begin{chapterenv}
+
+\chapter{Your RL Journey: From Here to Production}
+
+\section{What You Have Learned}
+
+Nineteen chapters. Let us look at what you now know.
+
+\textbf{Part 1 (Foundations)} established the mathematical and conceptual vocabulary: probability theory and policy gradients (Chapter 1), the alignment gap and why next-token prediction is not enough (Chapter 2), RL fundamentals including MDPs, value functions, and the policy gradient theorem (Chapter 3), and the practical setup for free GPU training (Chapter 4).
+
+\textbf{Part 2 (Core Methods)} built the standard toolkit: supervised fine-tuning to cold-start a model from raw pretraining (Chapter 5), RLHF with PPO to align with human preferences (Chapter 6), DPO to skip the reward model and learn preferences directly (Chapter 7), Online DPO to keep learning from fresh data (Chapter 8), reward model training and the critic's role in PPO (Chapter 9), and GRPO, RLOO, and KTO as more efficient alternatives to PPO (Chapter 10).
+
+\textbf{Part 3 (Advanced Techniques)} covered the frontier: verifiers and outcome reward models beyond PRMs (Chapter 11), the DeepSeek-R1 recipe for reasoning emergence (Chapter 12), test-time compute scaling with best-of-N and tree search (Chapter 13), self-play and Constitutional AI (Chapter 14), multi-objective RL for balancing competing goals (Chapter 15), domain-specific reward functions for code, math, tools, and dialogue (Chapter 16).
+
+\textbf{Part 4 (Production \& Recipes)} completed the picture: three concrete production recipes for chatbots, reasoners, and agents (Chapter 17), and debugging, scaling, and deployment practices for real-world systems (Chapter 18).
+
+\begin{infobox}
+\textbf{The core progression.}
+
+Every chapter built on one idea: \textit{reward signals can teach models behaviors that supervised learning cannot}.
+
+SFT teaches format and style from examples. RL teaches goal-directedness from outcomes. The combination --- SFT to bootstrap, RL to align --- is what makes modern LLMs genuinely useful rather than merely statistically plausible.
+\end{infobox}
+
+\section{Where the Field Is Going}
+
+RL for LLMs is moving fast. Several directions appear durable based on the trajectory of research through early 2025.
+
+\subsection{Verifiable Rewards at Scale}
+
+The biggest bottleneck in RL training is reward signal quality. Human annotation is slow and expensive. Reward models trained on human data overfit and get hacked. The path of least resistance is verifiable rewards --- rewards derived from automated oracles that cannot be fooled.
+
+Math and code are already solved: symbolic answer checkers and test suite execution provide perfect verifiers. The next frontier is extending verifiable rewards to less structured domains: fact-checking with retrieval (did the model cite a real paper?), logical consistency (are the model's claims mutually consistent?), and multi-step reasoning correctness (is every step in the chain-of-thought valid?).
+
+\subsection{Test-Time Compute as a Scaling Law}
+
+OpenAI's o1 demonstrated that test-time compute is a new scaling dimension, orthogonal to model size and training compute. Scaling inference (spending more compute per query) continues to improve accuracy even after training compute is exhausted. This means reasoning models can get better at inference time without any retraining.
+
+The implication: future systems will dynamically allocate compute to queries based on their difficulty. Easy questions get greedy decoding. Hard questions get beam search with PRM scoring and hundreds of candidates. The challenge is predicting query difficulty before generating the answer.
+
+\subsection{Agents with Long-Horizon Memory}
+
+Current agents struggle with tasks that span many hours or days: long research projects, extended software development workflows, persistent user relationships. The bottleneck is memory: attention windows are finite, and today's RL training assumes tasks fit in a single context.
+
+Research directions include: external memory (retrieve relevant past context at each step), hierarchical planning (decompose long-horizon tasks into short-horizon subproblems with their own RL objectives), and continual learning (update the model's weights incrementally from production experience without catastrophic forgetting).
+
+\subsection{Multi-Model Systems}
+
+Production AI systems increasingly use multiple specialized models rather than a single generalist: a fast small model for routing and triage, a medium model for standard queries, a large reasoning model for hard problems, specialized models for code or math. RL for these systems is a coordination problem: how do you train the routing model, the individual specialists, and their interaction protocols jointly?
+
+\begin{tipbox}
+\textbf{Staying current.}
+
+The field moves fast enough that specific algorithmic recommendations in this book may be superseded. What will not change: the mathematical foundations (policy gradients, value functions, KL constraints), the debugging patterns (KL explosion, reward hacking, mode collapse), and the evaluation principles (verify with automated oracles, track human preference on production traffic, monitor for quality drift).
+
+These are the invariants. Everything else is a specific instance of the same underlying ideas.
+\end{tipbox}
+
+\section{Your Next Steps}
+
+You now have the conceptual toolkit. The gap between understanding and production is closed by building.
+
+\textbf{If you are a practitioner:}
+\begin{enumerate}
+\item Start with DPO (simpler than PPO) on a small task you care about
+\item Use the companion notebooks from Chapter 4 as your starting point
+\item Focus on data quality over algorithm complexity --- 10,000 excellent preference pairs outperform 100,000 mediocre ones
+\item Monitor human evaluation on a fixed eval set, not just automated benchmarks
+\item Iterate quickly with a 7B model before scaling to 70B
+\end{enumerate}
+
+\textbf{If you are a researcher:}
+\begin{enumerate}
+\item Read the original PPO, DPO, GRPO, and DeepSeek-R1 papers for the precise mathematical details
+\item Implement GRPO from scratch once --- the implementation exercise reveals details that reading cannot
+\item Explore the open problems: better credit assignment in multi-step tasks, verifiable rewards for open-ended language, sample-efficient reward model updates
+\item Share your findings: the field advances through open publication
+\end{enumerate}
+
+\textbf{If you are building a product:}
+\begin{enumerate}
+\item Choose the recipe that matches your primary use case (Chapter 17)
+\item Budget for evaluation infrastructure before training infrastructure --- you cannot improve what you do not measure
+\item Plan for retraining from the start --- RL-trained models drift and require updates
+\item Constitutional AI (Chapter 14) is a practical safety layer even if you do not train with RLAIF --- use it for agent deployments
+\end{enumerate}
+
+\section{The Companion Code}
+
+All the techniques in this book are implemented in the companion notebooks at \texttt{github.com/PacktPublishing/Reinforcement-Learning-for-LLMs}. The notebooks are organized by chapter and cover:
+
+\begin{itemize}
+\item Chapter 5 (SFT): Fine-tuning with HuggingFace TRL and LoRA
+\item Chapter 6 (RLHF/PPO): Full PPO training loop with reward model
+\item Chapter 7 (DPO): DPO training on preference datasets
+\item Chapters 9--10 (Reward Models, GRPO): Training reward models and GRPO from scratch
+\item Chapter 11 (Verifiers): Outcome verifier training and evaluation
+\item Chapters 12--13 (Reasoning, Test-Time Compute): GRPO reasoning training and best-of-N
+\item Chapters 14--15 (Self-Play, Multi-Objective): CAI pipeline and multi-objective reward composition
+\item Chapter 16 (Domain-Specific): Code and math reward functions
+\item Chapter 17 (Recipes): End-to-end chatbot, reasoner, and agent pipelines
+\end{itemize}
+
+Every notebook runs on free Colab T4 GPUs (or local hardware). All examples use openly available models and datasets. There is no setup barrier between reading this chapter and running the code.
+
+\section{A Final Word}
+
+The mathematics in this book is real. Policy gradients, KL divergence, value function estimation, Pareto frontiers --- these are not metaphors or simplifications. They are the actual machinery behind the most capable language models in the world.
+
+But the mathematics is also, ultimately, in service of a practical goal: building systems that help people do things they could not do alone. The alignment gap (Chapter 2) is not just a technical problem --- it is the question of how we build AI that reliably does what we actually want, not just what we said we wanted when we wrote the loss function.
+
+RL is the best tool we have for closing that gap. It is also a humbling one: every reward function is an imperfect specification of what we value, and every trained model is a reminder that what you measure is what you get.
+
+Go build something. Then measure it. Then make it better.
+
+\begin{center}
+\vspace{1.5cm}
+{\large\itshape
+The future of AI is being written right now.
+
+You have the knowledge to help write it.}
+\vspace{1.5cm}
+\end{center}
+
+\end{chapterenv}

@@ -1,0 +1,38 @@
+\begin{MintedVerbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8\relax}]
+\PYG{c+c1}{\PYGZsh{} Simple evaluation: check if model produces think tags}
+\PYG{c+c1}{\PYGZsh{} and correct answers on held\PYGZhy{}out examples}
+\PYG{n}{eval\PYGZus{}prompts} \PYG{o}{=} \PYG{p}{[}
+    \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}What is 12}\PYG{l+s+si}{\PYGZpc{} o}\PYG{l+s+s2}{f 300?\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}36\PYGZdq{}}\PYG{p}{),}
+    \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Solve: 4x = 28\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}7\PYGZdq{}}\PYG{p}{),}
+    \PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Is 29 prime?\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}yes\PYGZdq{}}\PYG{p}{),}
+\PYG{p}{]}
+
+\PYG{n}{correct} \PYG{o}{=} \PYG{l+m+mi}{0}
+\PYG{n}{has\PYGZus{}think\PYGZus{}tags} \PYG{o}{=} \PYG{l+m+mi}{0}
+
+\PYG{k}{for} \PYG{n}{prompt}\PYG{p}{,} \PYG{n}{expected} \PYG{o+ow}{in} \PYG{n}{eval\PYGZus{}prompts}\PYG{p}{:}
+    \PYG{n}{messages} \PYG{o}{=} \PYG{p}{[\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}role\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}user\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}content\PYGZdq{}}\PYG{p}{:} \PYG{n}{prompt}\PYG{p}{\PYGZcb{}]}
+    \PYG{n}{inputs} \PYG{o}{=} \PYG{n}{tokenizer}\PYG{o}{.}\PYG{n}{apply\PYGZus{}chat\PYGZus{}template}\PYG{p}{(}
+        \PYG{n}{messages}\PYG{p}{,}
+        \PYG{n}{tokenize} \PYG{o}{=} \PYG{k+kc}{True}\PYG{p}{,}
+        \PYG{n}{add\PYGZus{}generation\PYGZus{}prompt} \PYG{o}{=} \PYG{k+kc}{True}\PYG{p}{,}
+        \PYG{n}{return\PYGZus{}tensors} \PYG{o}{=} \PYG{l+s+s2}{\PYGZdq{}pt\PYGZdq{}}\PYG{p}{,}
+    \PYG{p}{)}\PYG{o}{.}\PYG{n}{to}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}cuda\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{output\PYGZus{}ids} \PYG{o}{=} \PYG{n}{model}\PYG{o}{.}\PYG{n}{generate}\PYG{p}{(}
+        \PYG{n}{input\PYGZus{}ids} \PYG{o}{=} \PYG{n}{inputs}\PYG{p}{,}
+        \PYG{n}{max\PYGZus{}new\PYGZus{}tokens} \PYG{o}{=} \PYG{l+m+mi}{512}\PYG{p}{,}
+        \PYG{n}{temperature} \PYG{o}{=} \PYG{l+m+mf}{0.1}\PYG{p}{,}  \PYG{c+c1}{\PYGZsh{} Low temp for evaluation}
+    \PYG{p}{)}
+    \PYG{n}{response} \PYG{o}{=} \PYG{n}{tokenizer}\PYG{o}{.}\PYG{n}{decode}\PYG{p}{(}
+        \PYG{n}{output\PYGZus{}ids}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{][}\PYG{n}{inputs}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{]:],}
+        \PYG{n}{skip\PYGZus{}special\PYGZus{}tokens} \PYG{o}{=} \PYG{k+kc}{True}
+    \PYG{p}{)}
+
+    \PYG{k}{if} \PYG{l+s+s2}{\PYGZdq{}\PYGZlt{}think\PYGZgt{}\PYGZdq{}} \PYG{o+ow}{in} \PYG{n}{response} \PYG{o+ow}{and} \PYG{l+s+s2}{\PYGZdq{}\PYGZlt{}/think\PYGZgt{}\PYGZdq{}} \PYG{o+ow}{in} \PYG{n}{response}\PYG{p}{:}
+        \PYG{n}{has\PYGZus{}think\PYGZus{}tags} \PYG{o}{+=} \PYG{l+m+mi}{1}
+    \PYG{k}{if} \PYG{n}{expected}\PYG{o}{.}\PYG{n}{lower}\PYG{p}{()} \PYG{o+ow}{in} \PYG{n}{response}\PYG{o}{.}\PYG{n}{lower}\PYG{p}{():}
+        \PYG{n}{correct} \PYG{o}{+=} \PYG{l+m+mi}{1}
+
+\PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Think\PYGZhy{}tag compliance: }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{has\PYGZus{}think\PYGZus{}tags}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{/}\PYG{l+s+si}{\PYGZob{}}\PYG{n+nb}{len}\PYG{p}{(}\PYG{n}{eval\PYGZus{}prompts}\PYG{p}{)}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+\PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Answer accuracy: }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{correct}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{/}\PYG{l+s+si}{\PYGZob{}}\PYG{n+nb}{len}\PYG{p}{(}\PYG{n}{eval\PYGZus{}prompts}\PYG{p}{)}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+\end{MintedVerbatim}

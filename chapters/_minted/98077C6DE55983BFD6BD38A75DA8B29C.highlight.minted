@@ -1,0 +1,32 @@
+\begin{MintedVerbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8\relax}]
+\PYG{c+c1}{\PYGZsh{} Switch to inference mode}
+\PYG{n}{FastLanguageModel}\PYG{o}{.}\PYG{n}{for\PYGZus{}inference}\PYG{p}{(}\PYG{n}{model}\PYG{p}{)}
+
+\PYG{k+kn}{from}\PYG{+w}{ }\PYG{n+nn}{transformers}\PYG{+w}{ }\PYG{k+kn}{import} \PYG{n}{TextStreamer}
+
+\PYG{c+c1}{\PYGZsh{} Test with a question similar to training data}
+\PYG{n}{test\PYGZus{}prompts} \PYG{o}{=} \PYG{p}{[}
+    \PYG{l+s+s2}{\PYGZdq{}What is 30}\PYG{l+s+si}{\PYGZpc{} o}\PYG{l+s+s2}{f 250?\PYGZdq{}}\PYG{p}{,}
+    \PYG{l+s+s2}{\PYGZdq{}Solve: 5x \PYGZhy{} 3 = 22\PYGZdq{}}\PYG{p}{,}
+    \PYG{l+s+s2}{\PYGZdq{}A car travels 200 km in 2.5 hours. \PYGZdq{}}
+    \PYG{l+s+s2}{\PYGZdq{}What is its average speed?\PYGZdq{}}\PYG{p}{,}
+\PYG{p}{]}
+
+\PYG{k}{for} \PYG{n}{prompt} \PYG{o+ow}{in} \PYG{n}{test\PYGZus{}prompts}\PYG{p}{:}
+    \PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+si}{\PYGZob{}}\PYG{l+s+s1}{\PYGZsq{}=\PYGZsq{}}\PYG{o}{*}\PYG{l+m+mi}{50}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+    \PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}PROMPT: }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{prompt}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+    \PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZob{}}\PYG{l+s+s1}{\PYGZsq{}=\PYGZsq{}}\PYG{o}{*}\PYG{l+m+mi}{50}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{messages} \PYG{o}{=} \PYG{p}{[\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}role\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}user\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}content\PYGZdq{}}\PYG{p}{:} \PYG{n}{prompt}\PYG{p}{\PYGZcb{}]}
+    \PYG{n}{inputs} \PYG{o}{=} \PYG{n}{tokenizer}\PYG{o}{.}\PYG{n}{apply\PYGZus{}chat\PYGZus{}template}\PYG{p}{(}
+        \PYG{n}{messages}\PYG{p}{,}
+        \PYG{n}{tokenize} \PYG{o}{=} \PYG{k+kc}{True}\PYG{p}{,}
+        \PYG{n}{add\PYGZus{}generation\PYGZus{}prompt} \PYG{o}{=} \PYG{k+kc}{True}\PYG{p}{,}
+        \PYG{n}{return\PYGZus{}tensors} \PYG{o}{=} \PYG{l+s+s2}{\PYGZdq{}pt\PYGZdq{}}\PYG{p}{,}
+    \PYG{p}{)}\PYG{o}{.}\PYG{n}{to}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}cuda\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{\PYGZus{}} \PYG{o}{=} \PYG{n}{model}\PYG{o}{.}\PYG{n}{generate}\PYG{p}{(}
+        \PYG{n}{input\PYGZus{}ids} \PYG{o}{=} \PYG{n}{inputs}\PYG{p}{,}
+        \PYG{n}{max\PYGZus{}new\PYGZus{}tokens} \PYG{o}{=} \PYG{l+m+mi}{512}\PYG{p}{,}
+        \PYG{n}{temperature} \PYG{o}{=} \PYG{l+m+mf}{0.7}\PYG{p}{,}
+        \PYG{n}{streamer} \PYG{o}{=} \PYG{n}{TextStreamer}\PYG{p}{(}\PYG{n}{tokenizer}\PYG{p}{),}
+    \PYG{p}{)}
+\end{MintedVerbatim}

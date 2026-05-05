@@ -1,0 +1,17 @@
+\begin{MintedVerbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8\relax}]
+\PYG{k+kn}{from}\PYG{+w}{ }\PYG{n+nn}{unsloth}\PYG{+w}{ }\PYG{k+kn}{import} \PYG{n}{FastLanguageModel}
+\PYG{k+kn}{import}\PYG{+w}{ }\PYG{n+nn}{torch}
+
+\PYG{n}{max\PYGZus{}seq\PYGZus{}length} \PYG{o}{=} \PYG{l+m+mi}{2048}
+\PYG{n}{model\PYGZus{}name} \PYG{o}{=} \PYG{l+s+s2}{\PYGZdq{}unsloth/Qwen2.5\PYGZhy{}1.5B\PYGZhy{}Instruct\PYGZdq{}}
+
+\PYG{n}{model}\PYG{p}{,} \PYG{n}{tokenizer} \PYG{o}{=} \PYG{n}{FastLanguageModel}\PYG{o}{.}\PYG{n}{from\PYGZus{}pretrained}\PYG{p}{(}
+    \PYG{n}{model\PYGZus{}name}\PYG{o}{=}\PYG{n}{model\PYGZus{}name}\PYG{p}{,}
+    \PYG{n}{max\PYGZus{}seq\PYGZus{}length}\PYG{o}{=}\PYG{n}{max\PYGZus{}seq\PYGZus{}length}\PYG{p}{,}
+    \PYG{n}{load\PYGZus{}in\PYGZus{}4bit}\PYG{o}{=}\PYG{k+kc}{True}\PYG{p}{,}   \PYG{c+c1}{\PYGZsh{} 4\PYGZhy{}bit to fit on free GPU}
+    \PYG{n}{load\PYGZus{}in\PYGZus{}8bit}\PYG{o}{=}\PYG{k+kc}{False}\PYG{p}{,}
+\PYG{p}{)}
+
+\PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Model loaded successfully!\PYGZdq{}}\PYG{p}{)}
+\PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Parameters: }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{model}\PYG{o}{.}\PYG{n}{num\PYGZus{}parameters}\PYG{p}{()}\PYG{l+s+si}{:}\PYG{l+s+s2}{,}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+\end{MintedVerbatim}

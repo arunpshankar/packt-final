@@ -1,0 +1,15 @@
+\begin{MintedVerbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8\relax}]
+\PYG{o}{\PYGZpc{}\PYGZpc{}}\PYG{n}{capture}
+\PYG{k+kn}{import}\PYG{+w}{ }\PYG{n+nn}{os}
+\PYG{k}{if} \PYG{l+s+s2}{\PYGZdq{}COLAB\PYGZus{}\PYGZdq{}} \PYG{o+ow}{not} \PYG{o+ow}{in} \PYG{l+s+s2}{\PYGZdq{}\PYGZdq{}}\PYG{o}{.}\PYG{n}{join}\PYG{p}{(}\PYG{n}{os}\PYG{o}{.}\PYG{n}{environ}\PYG{o}{.}\PYG{n}{keys}\PYG{p}{()):}
+    \PYG{err}{!}\PYG{n}{pip} \PYG{n}{install} \PYG{n}{unsloth}
+\PYG{k}{else}\PYG{p}{:}
+    \PYG{c+c1}{\PYGZsh{} Colab\PYGZhy{}optimized install (avoids conflicts)}
+    \PYG{err}{!}\PYG{n}{pip} \PYG{n}{install} \PYG{o}{\PYGZhy{}\PYGZhy{}}\PYG{n}{no}\PYG{o}{\PYGZhy{}}\PYG{n}{deps} \PYGZbs{}
+        \PYG{n}{bitsandbytes} \PYG{n}{accelerate} \PYG{n}{xformers} \PYGZbs{}
+        \PYG{n}{peft} \PYG{n}{trl} \PYG{n}{triton} \PYGZbs{}
+        \PYG{n}{cut\PYGZus{}cross\PYGZus{}entropy} \PYG{n}{unsloth\PYGZus{}zoo}
+    \PYG{err}{!}\PYG{n}{pip} \PYG{n}{install} \PYG{n}{sentencepiece} \PYG{n}{protobuf} \PYGZbs{}
+        \PYG{l+s+s2}{\PYGZdq{}datasets\PYGZgt{}=3.4.1\PYGZdq{}} \PYG{n}{huggingface\PYGZus{}hub}
+    \PYG{err}{!}\PYG{n}{pip} \PYG{n}{install} \PYG{o}{\PYGZhy{}\PYGZhy{}}\PYG{n}{no}\PYG{o}{\PYGZhy{}}\PYG{n}{deps} \PYG{n}{unsloth}
+\end{MintedVerbatim}

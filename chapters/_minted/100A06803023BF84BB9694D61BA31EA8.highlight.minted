@@ -1,0 +1,5 @@
+\begin{MintedVerbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8\relax}]
+git\PYG{+w}{ }clone\PYG{+w}{ }https://github.com/PacktPublishing/Reinforcement\PYGZhy{}Learning\PYGZhy{}for\PYGZhy{}LLMs.git
+\PYG{n+nb}{cd}\PYG{+w}{ }Reinforcement\PYGZhy{}Learning\PYGZhy{}for\PYGZhy{}LLMs
+pip\PYG{+w}{ }install\PYG{+w}{ }\PYGZhy{}r\PYG{+w}{ }requirements.txt
+\end{MintedVerbatim}

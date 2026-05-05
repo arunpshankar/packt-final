@@ -1,0 +1,16 @@
+\begin{MintedVerbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8\relax}]
+\PYG{n}{model} \PYG{o}{=} \PYG{n}{FastLanguageModel}\PYG{o}{.}\PYG{n}{get\PYGZus{}peft\PYGZus{}model}\PYG{p}{(}
+    \PYG{n}{model}\PYG{p}{,}
+    \PYG{n}{r} \PYG{o}{=} \PYG{l+m+mi}{16}\PYG{p}{,}                \PYG{c+c1}{\PYGZsh{} Rank: capacity of the adaptation}
+    \PYG{n}{target\PYGZus{}modules} \PYG{o}{=} \PYG{p}{[}     \PYG{c+c1}{\PYGZsh{} Which weight matrices get LoRA}
+        \PYG{l+s+s2}{\PYGZdq{}q\PYGZus{}proj\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}k\PYGZus{}proj\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}v\PYGZus{}proj\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}o\PYGZus{}proj\PYGZdq{}}\PYG{p}{,}  \PYG{c+c1}{\PYGZsh{} Attention}
+        \PYG{l+s+s2}{\PYGZdq{}gate\PYGZus{}proj\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}up\PYGZus{}proj\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}down\PYGZus{}proj\PYGZdq{}}\PYG{p}{,}      \PYG{c+c1}{\PYGZsh{} Feed\PYGZhy{}forward}
+    \PYG{p}{],}
+    \PYG{n}{lora\PYGZus{}alpha} \PYG{o}{=} \PYG{l+m+mi}{16}\PYG{p}{,}       \PYG{c+c1}{\PYGZsh{} Scaling factor (usually = r)}
+    \PYG{n}{lora\PYGZus{}dropout} \PYG{o}{=} \PYG{l+m+mi}{0}\PYG{p}{,}      \PYG{c+c1}{\PYGZsh{} No dropout (Unsloth default)}
+    \PYG{n}{bias} \PYG{o}{=} \PYG{l+s+s2}{\PYGZdq{}none\PYGZdq{}}\PYG{p}{,}         \PYG{c+c1}{\PYGZsh{} Do not train bias terms}
+    \PYG{n}{use\PYGZus{}gradient\PYGZus{}checkpointing} \PYG{o}{=} \PYG{l+s+s2}{\PYGZdq{}unsloth\PYGZdq{}}\PYG{p}{,}  \PYG{c+c1}{\PYGZsh{} Memory savings}
+    \PYG{n}{random\PYGZus{}state} \PYG{o}{=} \PYG{l+m+mi}{42}\PYG{p}{,}
+    \PYG{n}{max\PYGZus{}seq\PYGZus{}length} \PYG{o}{=} \PYG{n}{max\PYGZus{}seq\PYGZus{}length}\PYG{p}{,}
+\PYG{p}{)}
+\end{MintedVerbatim}

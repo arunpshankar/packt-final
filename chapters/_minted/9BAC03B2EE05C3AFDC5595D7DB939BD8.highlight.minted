@@ -1,0 +1,13 @@
+\begin{MintedVerbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8\relax}]
+\PYG{c+c1}{\PYGZsh{} Simple factual question (minimal think block)}
+\PYG{p}{\PYGZob{}}
+    \PYG{l+s+s2}{\PYGZdq{}messages\PYGZdq{}}\PYG{p}{:} \PYG{p}{[}
+        \PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}role\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}user\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}content\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}What is the capital of France?\PYGZdq{}}\PYG{p}{\PYGZcb{},}
+        \PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}role\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}assistant\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}content\PYGZdq{}}\PYG{p}{:}
+         \PYG{l+s+s2}{\PYGZdq{}\PYGZlt{}think\PYGZgt{}}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}This is a straightforward factual question.}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}\PYGZlt{}/think\PYGZgt{}}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}The capital of France is Paris.\PYGZdq{}}\PYG{p}{\PYGZcb{}}
+    \PYG{p}{]}
+\PYG{p}{\PYGZcb{}}
+\end{MintedVerbatim}

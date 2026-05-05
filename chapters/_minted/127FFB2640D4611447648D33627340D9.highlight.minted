@@ -1,0 +1,21 @@
+\begin{MintedVerbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8\relax}]
+\PYG{c+c1}{\PYGZsh{} Math reasoning}
+\PYG{p}{\PYGZob{}}
+    \PYG{l+s+s2}{\PYGZdq{}messages\PYGZdq{}}\PYG{p}{:} \PYG{p}{[}
+        \PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}role\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}user\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}content\PYGZdq{}}\PYG{p}{:}
+         \PYG{l+s+s2}{\PYGZdq{}A store marks up items by 40\PYGZpc{}, then offers a 25\PYGZpc{} \PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}discount. What is the effective markup?\PYGZdq{}}\PYG{p}{\PYGZcb{},}
+        \PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}role\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}assistant\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}content\PYGZdq{}}\PYG{p}{:}
+         \PYG{l+s+s2}{\PYGZdq{}\PYGZlt{}think\PYGZgt{}}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}Start with a base price of \PYGZdl{}100.}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}After 40\PYGZpc{} markup: \PYGZdl{}100 * 1.40 = \PYGZdl{}140.}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}After 25}\PYG{l+s+si}{\PYGZpc{} d}\PYG{l+s+s2}{iscount: \PYGZdl{}140 * 0.75 = \PYGZdl{}105.}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}Effective markup: (\PYGZdl{}105 \PYGZhy{} \PYGZdl{}100) / \PYGZdl{}100 = 5\PYGZpc{}.}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}The markups do not simply subtract because \PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}the discount applies to the marked\PYGZhy{}up price, \PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}not the original.}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}\PYGZlt{}/think\PYGZgt{}}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}The effective markup is 5\PYGZpc{}.\PYGZdq{}}\PYG{p}{\PYGZcb{}}
+    \PYG{p}{]}
+\PYG{p}{\PYGZcb{}}
+\end{MintedVerbatim}

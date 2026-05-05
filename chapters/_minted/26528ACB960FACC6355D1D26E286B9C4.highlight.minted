@@ -1,0 +1,62 @@
+\begin{MintedVerbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8\relax}]
+\PYG{k+kn}{from}\PYG{+w}{ }\PYG{n+nn}{datasets}\PYG{+w}{ }\PYG{k+kn}{import} \PYG{n}{Dataset}
+
+\PYG{c+c1}{\PYGZsh{} Helper function to format a single example}
+\PYG{k}{def}\PYG{+w}{ }\PYG{n+nf}{make\PYGZus{}example}\PYG{p}{(}\PYG{n}{question}\PYG{p}{,} \PYG{n}{thinking}\PYG{p}{,} \PYG{n}{answer}\PYG{p}{):}
+    \PYG{k}{return} \PYG{p}{\PYGZob{}}
+        \PYG{l+s+s2}{\PYGZdq{}messages\PYGZdq{}}\PYG{p}{:} \PYG{p}{[}
+            \PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}role\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}user\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}content\PYGZdq{}}\PYG{p}{:} \PYG{n}{question}\PYG{p}{\PYGZcb{},}
+            \PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}role\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}assistant\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}content\PYGZdq{}}\PYG{p}{:}
+             \PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}\PYGZlt{}think\PYGZgt{}}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{thinking}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZlt{}/think\PYGZgt{}}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{answer}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{\PYGZcb{}}
+        \PYG{p}{]}
+    \PYG{p}{\PYGZcb{}}
+
+\PYG{c+c1}{\PYGZsh{} Build a dataset with think\PYGZhy{}tag formatted examples}
+\PYG{n}{train\PYGZus{}data} \PYG{o}{=} \PYG{p}{[}
+    \PYG{n}{make\PYGZus{}example}\PYG{p}{(}
+        \PYG{l+s+s2}{\PYGZdq{}What is 15}\PYG{l+s+si}{\PYGZpc{} o}\PYG{l+s+s2}{f 200?\PYGZdq{}}\PYG{p}{,}
+        \PYG{l+s+s2}{\PYGZdq{}15}\PYG{l+s+si}{\PYGZpc{} a}\PYG{l+s+s2}{s a decimal is 0.15.}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZdq{}}
+        \PYG{l+s+s2}{\PYGZdq{}0.15 * 200 = 30.\PYGZdq{}}\PYG{p}{,}
+        \PYG{l+s+s2}{\PYGZdq{}15}\PYG{l+s+si}{\PYGZpc{} o}\PYG{l+s+s2}{f 200 is 30.\PYGZdq{}}
+    \PYG{p}{),}
+    \PYG{n}{make\PYGZus{}example}\PYG{p}{(}
+        \PYG{l+s+s2}{\PYGZdq{}Solve: 3x + 7 = 22\PYGZdq{}}\PYG{p}{,}
+        \PYG{l+s+s2}{\PYGZdq{}Subtract 7 from both sides: 3x = 15.}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZdq{}}
+        \PYG{l+s+s2}{\PYGZdq{}Divide both sides by 3: x = 5.\PYGZdq{}}\PYG{p}{,}
+        \PYG{l+s+s2}{\PYGZdq{}x = 5.\PYGZdq{}}
+    \PYG{p}{),}
+    \PYG{n}{make\PYGZus{}example}\PYG{p}{(}
+        \PYG{l+s+s2}{\PYGZdq{}Is 51 a prime number?\PYGZdq{}}\PYG{p}{,}
+        \PYG{l+s+s2}{\PYGZdq{}Check divisibility. 51 / 3 = 17.}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZdq{}}
+        \PYG{l+s+s2}{\PYGZdq{}Since 51 = 3 * 17, it is not prime.\PYGZdq{}}\PYG{p}{,}
+        \PYG{l+s+s2}{\PYGZdq{}No, 51 is not prime. It equals 3 times 17.\PYGZdq{}}
+    \PYG{p}{),}
+    \PYG{n}{make\PYGZus{}example}\PYG{p}{(}
+        \PYG{l+s+s2}{\PYGZdq{}What is the sum of the first 10 positive integers?\PYGZdq{}}\PYG{p}{,}
+        \PYG{l+s+s2}{\PYGZdq{}Use the formula: n(n+1)/2.}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZdq{}}
+        \PYG{l+s+s2}{\PYGZdq{}n = 10, so 10 * 11 / 2 = 55.\PYGZdq{}}\PYG{p}{,}
+        \PYG{l+s+s2}{\PYGZdq{}The sum is 55.\PYGZdq{}}
+    \PYG{p}{),}
+    \PYG{n}{make\PYGZus{}example}\PYG{p}{(}
+        \PYG{l+s+s2}{\PYGZdq{}A train travels 120 km in 1.5 hours. \PYGZdq{}}
+        \PYG{l+s+s2}{\PYGZdq{}What is its average speed?\PYGZdq{}}\PYG{p}{,}
+        \PYG{l+s+s2}{\PYGZdq{}Speed = distance / time.}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZdq{}}
+        \PYG{l+s+s2}{\PYGZdq{}Speed = 120 / 1.5 = 80 km/h.\PYGZdq{}}\PYG{p}{,}
+        \PYG{l+s+s2}{\PYGZdq{}The average speed is 80 km/h.\PYGZdq{}}
+    \PYG{p}{),}
+    \PYG{c+c1}{\PYGZsh{} ... (in practice, include 45 more examples covering}
+    \PYG{c+c1}{\PYGZsh{}  math, logic, coding, and general knowledge)}
+\PYG{p}{]}
+
+\PYG{c+c1}{\PYGZsh{} For this demonstration, duplicate and vary examples}
+\PYG{c+c1}{\PYGZsh{} to reach 50 training samples}
+\PYG{k+kn}{import}\PYG{+w}{ }\PYG{n+nn}{copy}
+\PYG{k}{while} \PYG{n+nb}{len}\PYG{p}{(}\PYG{n}{train\PYGZus{}data}\PYG{p}{)} \PYG{o}{\PYGZlt{}} \PYG{l+m+mi}{50}\PYG{p}{:}
+    \PYG{k}{for} \PYG{n}{item} \PYG{o+ow}{in} \PYG{n+nb}{list}\PYG{p}{(}\PYG{n}{train\PYGZus{}data}\PYG{p}{):}
+        \PYG{k}{if} \PYG{n+nb}{len}\PYG{p}{(}\PYG{n}{train\PYGZus{}data}\PYG{p}{)} \PYG{o}{\PYGZgt{}=} \PYG{l+m+mi}{50}\PYG{p}{:}
+            \PYG{k}{break}
+        \PYG{n}{train\PYGZus{}data}\PYG{o}{.}\PYG{n}{append}\PYG{p}{(}\PYG{n}{copy}\PYG{o}{.}\PYG{n}{deepcopy}\PYG{p}{(}\PYG{n}{item}\PYG{p}{))}
+
+\PYG{n}{dataset} \PYG{o}{=} \PYG{n}{Dataset}\PYG{o}{.}\PYG{n}{from\PYGZus{}list}\PYG{p}{(}\PYG{n}{train\PYGZus{}data}\PYG{p}{)}
+\PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Dataset size: }\PYG{l+s+si}{\PYGZob{}}\PYG{n+nb}{len}\PYG{p}{(}\PYG{n}{dataset}\PYG{p}{)}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{ examples\PYGZdq{}}\PYG{p}{)}
+\end{MintedVerbatim}

@@ -1,0 +1,25 @@
+\begin{MintedVerbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8\relax}]
+\PYG{c+c1}{\PYGZsh{} Logical reasoning}
+\PYG{p}{\PYGZob{}}
+    \PYG{l+s+s2}{\PYGZdq{}messages\PYGZdq{}}\PYG{p}{:} \PYG{p}{[}
+        \PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}role\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}user\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}content\PYGZdq{}}\PYG{p}{:}
+         \PYG{l+s+s2}{\PYGZdq{}All roses are flowers. Some flowers fade quickly. \PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}Can we conclude that some roses fade quickly?\PYGZdq{}}\PYG{p}{\PYGZcb{},}
+        \PYG{p}{\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}role\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}assistant\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}content\PYGZdq{}}\PYG{p}{:}
+         \PYG{l+s+s2}{\PYGZdq{}\PYGZlt{}think\PYGZgt{}}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}Premise 1: All roses are flowers.}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}Premise 2: Some flowers fade quickly.}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}Question: Do some roses fade quickly?}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}The flowers that fade quickly might or might not \PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}include roses. Premise 2 says SOME flowers fade \PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}quickly, but does not specify which ones.}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}This is the fallacy of the undistributed middle.}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}We cannot conclude this.}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}\PYGZlt{}/think\PYGZgt{}}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{\PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}No, we cannot conclude that. While all roses are \PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}flowers, the flowers that fade quickly might be \PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}entirely non\PYGZhy{}rose flowers. The premises do not \PYGZdq{}}
+         \PYG{l+s+s2}{\PYGZdq{}give us enough information to draw that conclusion.\PYGZdq{}}\PYG{p}{\PYGZcb{}}
+    \PYG{p}{]}
+\PYG{p}{\PYGZcb{}}
+\end{MintedVerbatim}

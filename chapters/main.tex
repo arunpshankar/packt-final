@@ -1,0 +1,59 @@
+\documentclass[11pt, oneside, onecolumn, openany]{book}
+
+\def\outputformat{ebook}
+
+\usepackage{pentemplate}
+
+%% Fix: eliminate blank pages between chapters
+\let\cleardoublepage\clearpage
+
+%% Fix: "pt" leaking in chapter titles due to template's \vspace usage
+\titleformat{\chapter}[display]
+    {\sffamily\HUGE\fontseries{sb}\selectfont\setstretch{1.1}\raggedright}
+    {\rule{0pt}{96pt}\setlength{\parskip}{0pt}\fontsize{84}{0}\fontseries{sb}\selectfont{\thechapter}}
+    {0.5em}{#1}
+
+%% The book's title
+\title{Reinforcement Learning for LLMs}
+
+\edition{1}
+
+\subtitle{A Complete Guide}
+
+\author{Arun Shankar}
+
+\begin{document}
+
+%% DO NOT CHANGE!!!
+\setcounter{tocdepth}{3}
+\setlength{\parskip}{0.75em minus 0.25em}
+\setstretch{1.35}
+
+%% TOC will be added later at book level
+%% \frontmatter
+%% \input{00_TOC}
+
+%% Main contents
+\mainmatter
+
+\input{01_Chapter1}
+\input{02_Chapter2}
+\input{03_Chapter3}
+\input{04_Chapter4}
+\input{05_Chapter5}
+\input{06_Chapter6}
+\input{07_Chapter7}
+\input{08_Chapter8}
+\input{09_Chapter9}
+\input{10_Chapter10}
+\input{11_Chapter11}
+\input{12_Chapter12}
+\input{13_Chapter13}
+\input{14_Chapter14}
+\input{15_Chapter15}
+\input{16_Chapter16}
+\input{17_Chapter17}
+\input{18_Chapter18}
+\input{19_Chapter19}
+
+\end{document}

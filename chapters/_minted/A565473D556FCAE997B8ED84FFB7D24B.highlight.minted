@@ -1,0 +1,25 @@
+\begin{MintedVerbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8\relax}]
+\PYG{n}{prompts} \PYG{o}{=} \PYG{p}{[}
+    \PYG{l+s+s2}{\PYGZdq{}Explain gradient descent to a 10\PYGZhy{}year\PYGZhy{}old.\PYGZdq{}}\PYG{p}{,}
+    \PYG{l+s+s2}{\PYGZdq{}Write a haiku about machine learning.\PYGZdq{}}\PYG{p}{,}
+    \PYG{l+s+s2}{\PYGZdq{}What is the difference between a reward \PYGZdq{}}
+    \PYG{l+s+s2}{\PYGZdq{}and a value function?\PYGZdq{}}\PYG{p}{,}
+\PYG{p}{]}
+
+\PYG{k}{for} \PYG{n}{prompt} \PYG{o+ow}{in} \PYG{n}{prompts}\PYG{p}{:}
+    \PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+si}{\PYGZob{}}\PYG{l+s+s1}{\PYGZsq{}=\PYGZsq{}}\PYG{o}{*}\PYG{l+m+mi}{50}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+    \PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}PROMPT: }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{prompt}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+si}{\PYGZob{}}\PYG{l+s+s1}{\PYGZsq{}=\PYGZsq{}}\PYG{o}{*}\PYG{l+m+mi}{50}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{msgs} \PYG{o}{=} \PYG{p}{[\PYGZob{}}\PYG{l+s+s2}{\PYGZdq{}role\PYGZdq{}}\PYG{p}{:} \PYG{l+s+s2}{\PYGZdq{}user\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}content\PYGZdq{}}\PYG{p}{:} \PYG{n}{prompt}\PYG{p}{\PYGZcb{}]}
+    \PYG{n}{ids} \PYG{o}{=} \PYG{n}{tokenizer}\PYG{o}{.}\PYG{n}{apply\PYGZus{}chat\PYGZus{}template}\PYG{p}{(}
+        \PYG{n}{msgs}\PYG{p}{,}
+        \PYG{n}{tokenize}\PYG{o}{=}\PYG{k+kc}{True}\PYG{p}{,}
+        \PYG{n}{add\PYGZus{}generation\PYGZus{}prompt}\PYG{o}{=}\PYG{k+kc}{True}\PYG{p}{,}
+        \PYG{n}{return\PYGZus{}tensors}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}pt\PYGZdq{}}\PYG{p}{,}
+    \PYG{p}{)}\PYG{o}{.}\PYG{n}{to}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}cuda\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{model}\PYG{o}{.}\PYG{n}{generate}\PYG{p}{(}
+        \PYG{n}{input\PYGZus{}ids}\PYG{o}{=}\PYG{n}{ids}\PYG{p}{,}
+        \PYG{n}{max\PYGZus{}new\PYGZus{}tokens}\PYG{o}{=}\PYG{l+m+mi}{256}\PYG{p}{,}
+        \PYG{n}{temperature}\PYG{o}{=}\PYG{l+m+mf}{0.7}\PYG{p}{,}
+        \PYG{n}{streamer}\PYG{o}{=}\PYG{n}{TextStreamer}\PYG{p}{(}\PYG{n}{tokenizer}\PYG{p}{),}
+    \PYG{p}{)}
+\end{MintedVerbatim}

@@ -3,6 +3,16 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# DS Store
+.DS_Store
+.DS_Store/
+
+# venv 
+.venv
+.venv/
+.packt-final
+.packt-final/
+
 # C extensions
 *.so
 

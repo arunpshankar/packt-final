@@ -1,0 +1,162 @@
+\begin{chapterenv}
+
+\chapter{DeepSeek-R1: A Revolutionary Approach}
+
+\section{The Paradigm Shift}
+
+\begin{tipbox}
+DeepSeek-R1 challenged conventional wisdom by showing you can achieve state-of-the-art reasoning abilities through \textbf{pure reinforcement learning}, skipping supervised fine-tuning entirely!
+\end{tipbox}
+
+The traditional approach follows Pretrain $\to$ SFT $\to$ RLHF. DeepSeek-R1 simplified this to Pretrain $\to$ RLHF---that's it! The result: complex reasoning emerges naturally from RL.
+
+\textbf{The ``Aha!'' Moment:} Imagine teaching someone math by only showing them worked examples (SFT approach). Now imagine instead giving them problems and just telling them ``right'' or ``wrong'' after they solve them (RL approach).
+
+Surprisingly, the second approach led to \textit{discovering} problem-solving strategies that weren't explicitly taught! The model figured out that showing step-by-step reasoning led to better final answers---and it learned to do this on its own. This is like a student independently discovering that ``showing your work'' helps catch mistakes, without being told to do so.
+
+\section{Why Skip SFT?}
+
+\textbf{The Problem with SFT:}
+
+When you show a model thousands of examples of ``correct'' reasoning, you're teaching it to \textit{imitate} those patterns. But imitation has limits:
+
+\begin{itemize}[nosep]
+    \item The model can only be as good as the examples you show it
+    \item It learns surface patterns, not deep understanding
+    \item It's expensive to collect thousands of high-quality reasoning traces
+    \item The diversity is limited by human annotators
+\end{itemize}
+
+\textbf{The RL Alternative:} Instead, just give the model problems and a simple reward signal: ``Did you get the right answer?'' Now the model must \textit{discover} how to reason! And it turns out models discover more creative and effective strategies than humans would have taught them.
+
+\section{Group Relative Policy Optimization (GRPO)}
+
+\begin{infobox}
+\textbf{GRPO Objective:}
+
+\begin{align*}
+\mathcal{L}_{\text{GRPO}} = -\mathbb{E}_{x,\{y_i\}_{i=1}^G} \left[ \frac{1}{G} \sum_{i=1}^G \left( r(x, y_i) - \bar{r}_G \right) \cdot \log \pi_\theta(y_i | x) \right]
+\end{align*}
+
+Where $G$ is group size (typically 4--8), $y_i$ is output $i$ in the group, $r(x, y_i)$ is the reward for output $i$, and $\bar{r}_G = \frac{1}{G}\sum_{j=1}^G r(x, y_j)$ is the group average reward.
+
+\textbf{Key insight:} Use the group average as baseline instead of a separate value network!
+
+\textbf{In plain English}, for each problem: generate multiple attempts (a ``group''), check which ones are correct or incorrect, calculate the average reward for the group, then update the model---making above-average attempts more likely and below-average attempts less likely.
+
+\textbf{Why this works better:} The group average is a natural baseline that adapts to problem difficulty automatically. Hard problems have lower group averages, easy problems have higher ones. No need for a separate critic network like PPO!
+\end{infobox}
+
+\textbf{GRPO Example: Math Problem}
+
+\textbf{Problem:} ``What is $\sqrt{144} + 12 \times 3$?''
+
+\textbf{Correct answer:} 48
+
+\paragraph{Step 1: Generate a group of 4 attempts}
+
+\begin{center}
+\begin{tabular}{clcc}
+\toprule
+\textbf{Attempt} & \textbf{Model Output} & \textbf{Final Answer} & \textbf{Reward} \\
+\midrule
+1 & ``$12 + 36 = 48$'' & 48 (correct) & +1 \\
+2 & ``$\sqrt{144} = 12$, then $12 + 12 \times 3$\ldots'' & 48 (correct) & +1 \\
+3 & ``$\sqrt{144} = 14$, $14 + 36 = 50$'' & 50 (wrong) & 0 \\
+4 & ``$144 + 36 = 180$'' & 180 (wrong) & 0 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Step 2: Calculate group average}
+
+$$\bar{r}_G = \frac{1 + 1 + 0 + 0}{4} = \frac{2}{4} = 0.5$$
+
+\paragraph{Step 3: Calculate advantages (reward $-$ average)}
+
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+\textbf{Attempt} & \textbf{Reward} & \textbf{Group Avg} & \textbf{Advantage} \\
+\midrule
+1 & +1 & 0.5 & +0.5 \\
+2 & +1 & 0.5 & +0.5 \\
+3 & 0 & 0.5 & $-0.5$ \\
+4 & 0 & 0.5 & $-0.5$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Step 4: Update policy}
+
+Attempts 1 and 2 have positive advantage $\to$ increase probability. Attempts 3 and 4 have negative advantage $\to$ decrease probability.
+
+\textbf{What the model learns:} Showing step-by-step work (attempts 1 and 2) leads to correct answers. Computing $\sqrt{144}$ first helps (attempt 2). Skipping steps leads to errors (attempts 3 and 4). Over many problems, the model discovers that detailed reasoning leads to better rewards!
+
+\section{The Emergence of Chain-of-Thought}
+
+\begin{infobox}
+\textbf{The Most Surprising Discovery:}
+
+Nobody told DeepSeek-R1 to ``think step-by-step.'' Nobody showed it examples of chain-of-thought reasoning. Yet it discovered this strategy on its own!
+
+\textbf{Why did this happen?}
+
+\begin{enumerate}[nosep]
+    \item Longer, more detailed responses naturally have lower probability (more tokens to predict correctly)
+    \item But longer reasoning traces lead to better final answers (higher reward)
+    \item The model learns: ``The reward boost from correct answers outweighs the cost of longer sequences''
+    \item Result: The model develops elaborate reasoning chains
+\end{enumerate}
+
+This is like a student discovering that writing out their thought process helps them catch mistakes, without a teacher telling them to do so!
+\end{infobox}
+
+\section{Training Stages and ``Aha Moments''}
+
+DeepSeek-R1's training showed clear phases:
+
+\textbf{Stage 1: Random Exploration (First 100--500 steps).} Model outputs are chaotic, rewards are near zero, no clear patterns.
+
+\textbf{Stage 2: Basic Patterns (500--2000 steps).} Model learns to format outputs correctly. Discovers that attempting calculation leads to higher reward than random text. Still many errors.
+
+\textbf{Stage 3: ``Aha!'' Moment (2000--5000 steps).} This is the critical phase transition. \textbf{Sudden emergence}: model starts showing intermediate steps. Reasoning chains appear spontaneously. Accuracy jumps dramatically (30\% $\to$ 60\%). This is NOT gradual---it's a phase transition!
+
+\textbf{Stage 4: Refinement (5000+ steps).} Reasoning becomes more sophisticated. Model learns to verify its own work. Self-correction emerges. Accuracy continues improving (60\% $\to$ 85\%+).
+
+\section{Comparison: DeepSeek-R1 vs OpenAI o1}
+
+\begin{center}
+\begin{tabular}{p{0.22\textwidth}p{0.32\textwidth}p{0.32\textwidth}}
+\toprule
+\textbf{Aspect} & \textbf{DeepSeek-R1} & \textbf{OpenAI o1} \\
+\midrule
+Training approach & Pure RL (no SFT) & Likely SFT $\to$ RLHF \\
+Public details & Open weights, methodology & Closed, limited info \\
+Reasoning style & Very explicit, visible & Hidden ``thinking'' \\
+Cost & Lower (simpler pipeline) & Higher (multi-stage) \\
+Performance & State-of-the-art & State-of-the-art \\
+Novel contribution & Proved SFT unnecessary & First to show test-time scaling \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{tipbox}
+Both models prove that investing computation at training time (RL) or inference time (test-time compute) produces models that can \textit{reason} rather than just pattern-match. DeepSeek-R1's contribution: showing you can skip expensive human-annotated reasoning examples entirely!
+\end{tipbox}
+
+\section{Practical Implications}
+
+\begin{infobox}
+\textbf{Important Considerations:}
+
+While DeepSeek-R1's approach is revolutionary, it's not always the best choice.
+
+\textbf{When pure RL works well:} Objective rewards (code execution, math verification), lots of compute available, wanting to discover novel strategies.
+
+\textbf{When SFT still helps:} Subjective tasks (creative writing, style), limited compute, needing specific output formats, cold-start scenarios where RL from random initialization is very slow.
+
+\textbf{Best of both worlds:} Minimal SFT for basic instruction following, then aggressive RL for capability development.
+\end{infobox}
+
+\end{chapterenv}

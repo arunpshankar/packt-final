@@ -1,0 +1,129 @@
+\begin{chapterenv}
+
+\chapter{Reasoning and Chain-of-Thought Emergence}
+
+\section{The Surprising Discovery}
+
+For years, researchers believed: ``If you want a model to reason step-by-step, you need to show it examples of step-by-step reasoning.'' This led to expensive efforts to collect ``chain-of-thought'' (CoT) datasets: thousands of problems with detailed, step-by-step solutions written by humans.
+
+Then DeepSeek-R1 and similar models revealed something shocking: \textbf{Chain-of-thought reasoning can emerge spontaneously from pure reinforcement learning!} Nobody told the model to think step-by-step. Nobody showed it examples. Yet it discovered this strategy on its own, because detailed reasoning leads to better final answers (higher rewards). This is like a student independently discovering that ``showing your work'' helps catch mistakes---without a teacher ever mentioning it!
+
+\section{Why Does RL Discover Chain-of-Thought?}
+
+\begin{infobox}
+\textbf{The Fundamental Trade-off:}
+
+Two competing forces during RL training:
+
+\textbf{Force 1: Maximize reward.} Longer, more detailed reasoning leads to fewer mistakes and higher final accuracy. Incentive: generate elaborate reasoning chains.
+
+\textbf{Force 2: Minimize length (implicit).} Each token has probability $< 1$. Longer sequences have lower total probability: $p(\text{long}) = p(t_1) \cdot p(t_2) \cdots p(t_{100}) < p(\text{short})$. Incentive: keep responses short.
+
+\textbf{The Balance:} If the \textbf{reward boost} from better accuracy outweighs the \textbf{probability penalty} from extra length, then detailed reasoning emerges!
+
+This happens naturally when rewards are sparse (hard problems), accuracy improvements are significant, and the model has capacity for long-term planning.
+\end{infobox}
+
+\textbf{The Length-Reward Trade-off (Quantified)}
+
+\textbf{Scenario:} Model solving a math problem.
+
+\textbf{Strategy 1: Direct Answer (short).} Response: ``The answer is 42.'' Length: 5 tokens. Probability: $(0.8)^5 = 0.33$. Accuracy: 40\%. Expected reward: $0.33 \times 0.40 \times 10 = 1.32$.
+
+\textbf{Strategy 2: Detailed Reasoning (long).} Response: ``Let me break this down step by step: [50 tokens of reasoning]\ldots\ Therefore, the answer is 42.'' Length: 55 tokens. Probability: $(0.8)^{55} \approx 0.000013$. Accuracy: 85\%. Expected reward: $0.000013 \times 0.85 \times 10 = 0.00011$.
+
+\textbf{Wait---Strategy 2 has lower expected value?}
+
+\textbf{The Key Insight: Rewards are observed, probabilities are not!} The RL algorithm doesn't see the absolute probability. It sees: generate short response $\to$ reward = 0 (wrong 60\% of the time), generate long response $\to$ reward = 10 (right 85\% of the time). The policy gradient pushes up probability of \textit{high-reward} samples, regardless of initial likelihood!
+
+After many updates: Strategy 1 probability drops from 0.33 to 0.10, while Strategy 2 probability increases from 0.000013 to 0.25. The model learns: ``Yes, long reasoning is unlikely \textit{a priori}, but it gets such high rewards that it's worth it!''
+
+\section{The Three Types of Chain-of-Thought}
+
+\begin{center}
+\begin{tabular}{p{0.18\textwidth}p{0.35\textwidth}p{0.35\textwidth}}
+\toprule
+\textbf{Type} & \textbf{How It's Created} & \textbf{Characteristics} \\
+\midrule
+\textbf{Prompted CoT} & Add ``Let's think step by step'' to prompt & \textbf{Pros:} Zero training cost, works immediately. \textbf{Cons:} Quality varies, not optimized for task \\
+\textbf{Fine-tuned CoT} & SFT on human-written reasoning traces & \textbf{Pros:} High quality, consistent style. \textbf{Cons:} Expensive data collection, limited by human examples \\
+\textbf{RL-discovered CoT} & Emerges from pure reward signal & \textbf{Pros:} Discovers novel strategies, optimized for reward. \textbf{Cons:} Requires significant compute, may be less interpretable \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{infobox}
+\textbf{Performance Ranking (typical on difficult reasoning tasks):}
+
+\begin{enumerate}[nosep]
+    \item \textbf{RL-discovered CoT}: Best (85--90\% accuracy)
+    \item \textbf{Fine-tuned CoT}: Very good (75--85\% accuracy)
+    \item \textbf{Prompted CoT}: Good (65--75\% accuracy)
+    \item \textbf{No CoT}: Baseline (30--50\% accuracy)
+\end{enumerate}
+
+\textbf{Why RL wins:} RL-discovered CoT isn't constrained by human intuitions about ``how to solve problems.'' It discovers whatever reasoning patterns actually maximize reward, even if unconventional! For example, models often discover that ``solving the problem multiple ways and comparing'' is highly effective---a strategy few humans would have explicitly taught.
+\end{infobox}
+
+\section{When and How Reasoning Emerges}
+
+\textbf{Phase 1: Chaos (Steps 0--1000).} Model outputs are random, no coherent structure, rewards near zero. Random exploration.
+
+\textbf{Phase 2: Structure Discovery (Steps 1000--5000).} Model learns to format outputs (problem $\to$ solution structure), begins attempting calculations, rewards start increasing (10--20\% accuracy). Learning task structure.
+
+\textbf{Phase 3: ``Aha!'' Moment (Steps 5000--8000).} \textbf{Sudden emergence}: model starts showing intermediate steps! Reasoning chains appear spontaneously. Dramatic accuracy jump (20\% $\to$ 55\%). This is \textit{not} gradual---it's a phase transition. The model discovers the length-quality correlation.
+
+\textbf{Phase 4: Refinement (Steps 8000+).} Reasoning becomes more sophisticated. Self-correction appears (``Wait, that doesn't seem right\ldots''). Multiple solution strategies emerge. Accuracy continues climbing (55\% $\to$ 85\%+).
+
+\subsection{The ``Aha!'' Moment in Detail}
+
+\textbf{Why is the emergence sudden rather than gradual?}
+
+Think about learning to ride a bicycle: Days 1--10, falling constantly, no progress. Day 11, suddenly you can balance! Days 12--20, rapid improvement. There's a critical point where ``getting it'' happens suddenly.
+
+RL training shows similar phase transitions. \textbf{Before the ``aha'':} Model tries short responses (low initial cost), gets low rewards, incrementally tries slightly longer responses, still low rewards (reasoning not yet coherent). \textbf{The ``aha'':} Model generates first coherent multi-step reasoning by chance, gets high reward, policy gradient strongly reinforces this, all similar reasoning patterns get boosted, sudden jump in capability. \textbf{After the ``aha'':} Model now ``knows'' reasoning helps, explores variations (how to reason better), steady improvement.
+
+\section{Scaling Laws for Reasoning}
+
+\begin{infobox}
+\textbf{Compute Scaling for Reasoning:}
+
+Unlike standard language modeling, reasoning ability scales \textit{super-linearly} with compute during RL training!
+
+\textbf{Standard scaling (pretraining):} $\text{Loss} \propto C^{-\alpha}$ where $\alpha \approx 0.05$--$0.10$ (slow improvement).
+
+\textbf{Reasoning scaling (RL training):} $\text{Accuracy} \propto C^{-\beta}$ where $\beta \approx 0.15$--$0.25$ (faster improvement!).
+
+Investing 10$\times$ more compute in RL training yields 3--4$\times$ improvement in reasoning accuracy! This is much better scaling than standard pretraining, because reasoning is a \textit{skill} that can be learned, more compute means more exploration and better strategies, and phase transitions create non-smooth scaling (big jumps).
+\end{infobox}
+
+\textbf{Example Scaling Data (Hypothetical):}
+
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+\textbf{RL Compute} & \textbf{Accuracy (MATH)} & \textbf{Cost} & \textbf{\$/Accuracy} \\
+\midrule
+1$\times$ (baseline) & 45\% & \$10K & \$222 \\
+10$\times$ & 68\% & \$100K & \$1,470 \\
+100$\times$ & 82\% & \$1M & \$12,195 \\
+1000$\times$ & 89\% & \$10M & \$112,360 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Analysis:} The 1$\times$ $\to$ 10$\times$ range gives huge gains (45\% $\to$ 68\%), relatively cheap per point. The 10$\times$ $\to$ 100$\times$ range still shows good gains (68\% $\to$ 82\%). Beyond 100$\times$, diminishing returns (82\% $\to$ 89\%) at very high expense. For most applications, 10--100$\times$ compute is the sweet spot.
+
+\section{Comparing RL-CoT to Other Approaches}
+
+\begin{infobox}
+\textbf{Prompted CoT Analysis:}
+
+Adding ``Let's think step by step'' triggers a mode learned during pretraining/SFT. \textbf{Advantages:} Zero training cost, works immediately, interpretable. \textbf{Disadvantages:} Quality depends on base model, not optimized for specific task, prompt engineering required. Cost per query: without CoT $\sim$20 tokens $\times$ \$0.01 = \$0.20; with prompted CoT $\sim$150 tokens $\times$ \$0.01 = \$1.50 (7.5$\times$ more expensive).
+
+\textbf{RL-discovered CoT Analysis:}
+
+Model discovers reasoning patterns that maximize reward. \textbf{Advantages:} Best performance, task-optimized, discovers novel strategies, no prompt engineering. \textbf{Disadvantages:} High training cost (one-time), may be less interpretable, requires good reward signal. Cost structure: training \$100K--\$1M (one-time), inference same as prompted CoT. At scale (100M queries), the one-time training cost becomes negligible.
+\end{infobox}
+
+\end{chapterenv}

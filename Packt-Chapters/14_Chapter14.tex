@@ -1,0 +1,127 @@
+\begin{chapterenv}
+
+\chapter{Rejection Sampling \& Decoding Strategies}
+
+\section{Beyond Greedy Decoding}
+
+So far, we've mostly assumed the model generates one response and we evaluate it. But there are many ways to \textit{decode} (generate text) from a language model!
+
+Common decoding strategies include: \textbf{Greedy} (always pick highest probability token), \textbf{Sampling} (randomly sample from probability distribution), \textbf{Temperature} (control randomness), \textbf{Top-k} (only sample from top $k$ highest probability tokens), and \textbf{Top-p (nucleus)} (sample from smallest set of tokens with cumulative probability $\geq p$). When combined with RL and reward models, we can do even more interesting things!
+
+\section{Rejection Sampling with Reward Models}
+
+\begin{infobox}
+\textbf{The Idea:}
+
+Instead of generating one response, generate $N$ responses and only keep those that score above a reward threshold!
+
+\textbf{Algorithm:} Set reward threshold $\tau$ (e.g., 7/10), generate response $y$, score with reward model $r = R(x, y)$. If $r \geq \tau$, keep $y$. Otherwise, reject and try again (up to $N$ attempts).
+
+\textbf{Benefit:} Users only see high-quality responses! Low-quality generations are filtered out.
+
+\textbf{Cost:} May need multiple generation attempts per query (expensive).
+\end{infobox}
+
+\begin{infobox}
+\textbf{Formal Analysis:}
+
+Let $p_{\text{accept}} = P(r \geq \tau)$ be the probability a single sample passes. Expected number of attempts: $\mathbb{E}[\text{attempts}] = \frac{1}{p_{\text{accept}}}$. If 40\% of generations pass threshold, expected attempts $= 1/0.4 = 2.5$.
+
+Probability of success within $N$ attempts: $P(\text{success}) = 1 - (1 - p_{\text{accept}})^N$.
+
+With $p_{\text{accept}} = 0.4$: $N=1$ gives 40\% success, $N=3$ gives 78\%, $N=5$ gives 92\%.
+
+\textbf{Trade-off:} Strict threshold means higher quality but more rejections (expensive). Lenient threshold is faster but may accept mediocre responses. Set threshold based on cost-quality budget.
+\end{infobox}
+
+\textbf{Rejection Sampling Example:}
+
+\textbf{Prompt:} ``Write a professional email requesting a meeting.'' \textbf{Reward Threshold:} $\tau = 7.0$.
+
+\paragraph{Attempt 1:} Generated: ``hey can we meet sometime? let me know.'' Reward: $r_1 = 3.2/10$ (too casual, unprofessional). Decision: REJECT ($3.2 < 7.0$).
+
+\paragraph{Attempt 2:} Generated: ``I would like to schedule a meeting with you to discuss\ldots'' Reward: $r_2 = 8.5/10$ (professional and clear). Decision: ACCEPT ($8.5 \geq 7.0$), return to user.
+
+\textbf{Result:} User receives high-quality response only. Cost: 2 generation calls (vs.\ 1 without rejection sampling). Benefit: significantly higher output quality (8.5 vs.\ 3.2).
+
+\section{Self-Consistency Decoding}
+
+\begin{infobox}
+\textbf{The Self-Consistency Idea:}
+
+For reasoning tasks, generate multiple solutions and pick the most common answer!
+
+\textbf{Why this works:} Correct reasoning paths lead to the correct answer. Incorrect reasoning paths lead to \textit{various} wrong answers (spread out). By majority vote, the correct answer wins!
+
+\textbf{Algorithm:} Generate $N$ different solutions (using sampling, not greedy), extract final answer from each, count which answer appears most frequently, return the majority answer. This is particularly effective for math, logic, and coding problems where there's a definite correct answer.
+\end{infobox}
+
+\textbf{Self-Consistency Example:}
+
+\textbf{Problem:} ``If apples cost \$2 each and oranges cost \$3 each, and you buy 4 apples and 3 oranges, what's the total?'' \textbf{Correct Answer:} \$17.
+
+\textbf{Solution 1:} Apples: $4 \times \$2 = \$8$. Oranges: $3 \times \$3 = \$9$. Total: $\$8 + \$9 = \$17$. (Correct reasoning.)
+
+\textbf{Solution 2:} Cost per fruit: $\$2 + \$3 = \$5$. Total fruits: $4 + 3 = 7$. Total: $7 \times \$5 = \$35$. (Flawed logic---can't average prices this way.)
+
+\textbf{Solution 3:} Same correct calculation as Solution 1. Final answer: \$17.
+
+\textbf{Solution 4:} Average price: $(\$2 + \$3)/2 = \$2.50$. Total: $7 \times \$2.50 = \$17.50$. (Incorrect---weighted average needed.)
+
+\textbf{Solution 5:} Same correct calculation as Solutions 1 and 3. Final answer: \$17.
+
+\textbf{Majority Vote:} \$17 receives 3 votes (Solutions 1, 3, 5), \$35 receives 1, \$17.50 receives 1. Winner: \$17 (correct!). The 3 correct reasoning paths independently converged, while the 2 flawed approaches produced \textit{different} wrong answers.
+
+\begin{tipbox}
+\textbf{When to Use Self-Consistency:}
+
+\textbf{Works well for:} Math problems, multiple-choice questions, logic puzzles, code generation (run tests, majority wins), tasks where answers can be extracted and compared.
+
+\textbf{Doesn't work for:} Creative writing (no ``correct'' answer), open-ended questions, subjective tasks, when answers aren't directly comparable.
+
+\textbf{Optimal number of samples:} $N=3$ is the minimum for meaningful voting, $N=5$--10 gives good cost/quality balance, $N=20$+ has diminishing returns. Cost is $N \times$ normal inference, but typically yields 10--30\% accuracy improvement on reasoning tasks.
+\end{tipbox}
+
+\section{Temperature Scaling for Exploration}
+
+\begin{infobox}
+\textbf{Temperature-scaled probabilities:}
+
+$$P(\text{token}_i) = \frac{\exp(\text{logit}_i / T)}{\sum_j \exp(\text{logit}_j / T)}$$
+
+where $T$ is temperature. $T = 1$: normal probabilities. $T \to 0$: becomes greedy (argmax). $T \to \infty$: uniform distribution (random).
+
+\textbf{In plain English:} Low temperature ($T=0.1$) is very deterministic---safe but boring and repetitive. Medium temperature ($T=1.0$) is balanced with some variety, usually coherent. High temperature ($T=2.0$) is very random---creative but often incoherent.
+
+\textbf{When to adjust:} Factual questions benefit from low temp, creative writing from high temp, self-consistency from medium temp (want diversity).
+\end{infobox}
+
+\textbf{Temperature Example:}
+
+\textbf{Context:} ``The capital of France is\ldots''
+
+\textbf{Model's internal logits:} Paris = 8.0, London = 2.0, Rome = 1.5, Berlin = 1.0.
+
+With $T = 0.5$ (focused): $P(\text{Paris}) \approx 0.9999$. Almost always picks ``Paris.''
+
+With $T = 1.0$ (normal): $P(\text{Paris}) \approx 0.998$. Still picks ``Paris'' nearly always.
+
+With $T = 2.0$ (exploratory): $P(\text{Paris}) \approx 0.96$. Now 4\% chance of picking something else.
+
+With $T = 5.0$ (very random): $P(\text{Paris}) \approx 0.70$. 30\% chance of a wrong answer---too random for factual questions.
+
+\section{Combining Strategies}
+
+\begin{infobox}
+\textbf{Best Practices: Combining Multiple Strategies}
+
+Real production systems often combine multiple decoding strategies:
+
+\textbf{Recipe 1: High-Quality Reasoning.} Temperature $T=0.7$, generate $N=10$ solutions (self-consistency), score each with PRM, keep top-3 by PRM score, take majority vote among top-3. Cost: 10$\times$ normal inference. Benefit: 25--40\% accuracy improvement on hard reasoning.
+
+\textbf{Recipe 2: Fast Production System.} Temperature $T=0.8$, generate $N=3$ candidates, score with lightweight reward model, return highest-scoring candidate. Cost: 3$\times$ normal inference. Benefit: 10--15\% quality improvement, still fast.
+
+\textbf{Recipe 3: Creative Writing.} High temperature $T=1.5$, generate $N=5$ drafts, use style/quality reward model, present top-2 to user for selection. Cost: 5$\times$ normal inference. Benefit: gives user options, all high-quality.
+\end{infobox}
+
+\end{chapterenv}

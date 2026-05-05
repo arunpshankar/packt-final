@@ -1,0 +1,784 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{pentemplate}
+
+%% =============================================
+%% Dev Packages
+%% =============================================
+
+\RequirePackage{titling}
+\RequirePackage{fmtcount}
+\RequirePackage{listofitems}
+\RequirePackage{etoolbox}
+\RequirePackage{xstring}
+\RequirePackage[datesep=-,style=ddmmyyyy]{datetime2}
+
+%% =============================================
+%% Page Setup
+%% =============================================
+
+\RequirePackage[paperwidth=7.5in, paperheight=9.25in, left=1in, right=1in, top=0.875in, bottom=0.875in]{geometry}
+
+%% For headers and Footers
+
+\RequirePackage[explicit, newparttoc, pagestyles]{titlesec} %% explicit, 
+
+%% Remove unwanted page breaks added by `\chapter` and `\part`.
+%% These can be added as needed in the environment.
+\titleclass{\part}{straight}
+\titleclass{\chapter}{straight}
+
+\renewpagestyle{plain}
+{
+    \sethead[][][]
+    {}{}{}
+    \setfoot[][][]
+    {}{}{}
+}
+
+\newpagestyle{chapter}
+{
+    \sethead[\small\thepage][][\small\textit{\chaptertitle}] % even
+    {\small\textit{\chaptertitlename\space\thechapter}}{}{\small\thepage} % odd
+    \renewcommand{\makeheadrule}{\rule[-.3\baselineskip]{\linewidth}{0.4pt}}
+}
+
+\newpagestyle{unnumberedchapter}
+{
+    \sethead[\small\thepage][][\small\textit{\chaptertitle}] % even
+    {\small\textit{\chaptertitle}}{}{\small\thepage} % odd
+    \renewcommand{\makeheadrule}{\rule[-.3\baselineskip]{\linewidth}{0.4pt}}
+}
+
+\newpagestyle{bibliography}
+{
+    \sethead[\small\thepage][][\small\textit{Bibliography}] % even
+    {\small\textit{Bibliography}}{}{\small\thepage} % odd
+    \renewcommand{\makeheadrule}{\rule[-.3\baselineskip]{\linewidth}{0.4pt}}
+}
+
+
+%% =============================================
+%% Load font and typographic packages
+%% =============================================
+
+\RequirePackage[scaled=0.8]{noto} %% monospaced (code, urls)
+\RequirePackage{raleway} %% sans serif (headings)
+\RequirePackage{libertinus} %% serif (content)
+\RequirePackage{libertinust1math} % math font
+\RequirePackage[tracking=true]{microtype}
+\RequirePackage{moresize}
+
+%% =============================================
+%% Set default sans serif and monospaced fonts
+%% =============================================
+
+\renewcommand{\sfdefault}{Raleway-TLF}
+\renewcommand{\ttdefault}{NotoSansMono-TLF}
+
+%% =============================================
+%% General Layout Requirements
+%% =============================================
+
+%% Content encoding and language
+\RequirePackage{t1enc}
+\RequirePackage[T1]{fontenc}
+\RequirePackage[utf8]{inputenc}
+\RequirePackage[english]{babel}
+%% Text Alignment
+\RequirePackage[document]{ragged2e}
+%% Paragraph spacing
+\RequirePackage{parskip}
+%% Leading
+\RequirePackage{setspace}
+%% Lists
+\RequirePackage[inline, shortlabels]{enumitem}
+%% Tabulated content
+\RequirePackage{booktabs}
+\RequirePackage{array}
+%% URLs
+\RequirePackage{xurl}
+%% Images
+\RequirePackage{graphicx}
+\graphicspath{ {./images/} }
+%% Colors
+\RequirePackage[table,dvipsnames]{xcolor}
+%% Infobox, tipbox, and codeblocks
+\RequirePackage[most, minted]{tcolorbox}
+\tcbuselibrary{breakable}
+%% Headings and ToC
+\RequirePackage{titletoc}
+%\RequirePackage[pagestyles]{titlesec}
+%% Float content [!!!Only use if absolutely needed!!!]
+\RequirePackage{float}
+\RequirePackage{wrapfig}
+%% Switch layout [!!!Only use if absolutely needed!!!]
+\RequirePackage[strict]{changepage}
+%% Figure/Table Captions
+\RequirePackage[format=plain,
+            labelfont=it,
+            textfont=it]{caption}
+%% Blockquotes
+\AtBeginEnvironment{quote}{\itshape}
+%% Smart quote
+\RequirePackage[autostyle, english = american]{csquotes}
+\MakeOuterQuote{"}
+
+%% =============================================
+%% Default heading and TOC styles
+%% =============================================
+
+%% Strike rule for part labels
+\newcommand{\createrule}[1][0.4pt]
+    { \titlerule*[1pt]{\rule[0.25em]{12pt}{#1}} }
+
+%% Strut for chapter titles
+\newcommand{\createstrut}[1]
+    { \hrule height #1 width 0pt }
+
+
+%% Wrap all parts in this environment
+\newenvironment{partenv}
+{
+    \pagestyle{plain}
+    \setcounter{secnumdepth}{0}
+    \begin{justify}
+    \setlength\parindent{0pt}
+    \setlength{\parskip}{0.75em minus 0.25em}
+    \normalsize\rmfamily
+    %% TOC format for parts
+    \titlecontents{part}
+    [0em]
+    {\sffamily\setlength{\vspace}{0.25in}\large\bfseries\hspace*{0em}}
+    {\sffamily\large\bfseries\partname\enspace\thecontentslabel\hspace*{1pt}:\enspace}
+    {\sffamily\large\bfseries}
+    {\sffamily\large \enspace\titlerule*[1pc]{\enspace}\contentspage}[\hrule]
+}
+{ \clearpage{\thispagestyle{empty}\cleardoublepage}\end{justify} }
+
+
+%% Wrap all unnumbered but listed parts (Appendices) in this environment
+\newenvironment{unnumberedpartenv}
+{
+    \pagestyle{plain}
+    \setcounter{secnumdepth}{-2}
+    \begin{justify}
+    \setlength\parindent{0pt}
+    \setlength{\parskip}{0.75em minus 0.25em}
+    \normalsize\rmfamily
+    %% TOC format for parts
+    \titlecontents{part}
+    [0em]
+    {\sffamily\setlength{\vspace}{0.25in}\large\bfseries\hspace*{0em}}
+    {\sffamily\large\bfseries\partname\enspace\thecontentslabel\hspace*{1pt}:\enspace}
+    {\sffamily\large\bfseries}
+    {\sffamily\large \enspace\titlerule*[1pc]{\enspace}\contentspage}[\hrule]
+}
+{ \clearpage{\thispagestyle{empty}\cleardoublepage}\end{justify} }
+
+
+%% Wrap all chapters in this environment
+\newenvironment{chapterenv}
+{
+    \renewcommand{\chaptertitlename}{\chaptername} 
+    \thispagestyle{plain}
+    \setcounter{secnumdepth}{0}
+    \begin{justify}
+    \setlength\parindent{0pt}
+    \setlength{\parskip}{0.75em minus 0.25em}
+    \normalsize\rmfamily
+    \pagestyle{chapter}
+    %% TOC format for chapters
+    \titlecontents{chapter}
+    [0em]
+    {\sffamily\setlength{\vspace}{0.125in}}
+    {\sffamily\normalsize\bfseries\chaptertitlename\enspace\thecontentslabel\hspace*{1pt}:\enspace}
+    {\sffamily\normalsize\bfseries}
+    {\sffamily\normalsize\bfseries\titlerule*[0.35pc]{\enspace}\contentspage}
+    [\hrule\setlength{\vspace}{0.0625in}]
+    
+}
+{ \clearpage{\thispagestyle{empty}\cleardoublepage}\end{justify} }
+
+
+%% Wrap all appendix chapters in this environment
+\newenvironment{appendixenv}
+{
+    \thispagestyle{plain}
+    \setcounter{secnumdepth}{0}
+    \begin{justify}
+    \setlength\parindent{0pt}
+    \setlength{\parskip}{0.75em minus 0.25em}
+    \normalsize\rmfamily
+    \pagestyle{chapter}
+    %% TOC format for appendix
+    \titlecontents{chapter}
+    [0em]
+    {\sffamily\setlength{\vspace}{0.125in}}
+    {\sffamily\normalsize\bfseries\appendixname\enspace\thecontentslabel\hspace*{1pt}:\enspace}
+    {\sffamily\normalsize\bfseries}
+    {\sffamily\normalsize\bfseries\titlerule*[0.35pc]{\enspace}\contentspage}
+    [\hrule\setlength{\vspace}{0.0625in}]
+}
+{ \clearpage{\thispagestyle{empty}\cleardoublepage}\end{justify} }
+
+
+%% Wrap all unnumbered but listed chapters (Preface, BM, Index) in this environment
+\newenvironment{unnumberedchapterenv}
+{
+    \renewcommand{\chaptertitlename}{\chaptername} 
+    \thispagestyle{plain}
+    \setcounter{secnumdepth}{-1}
+    \begin{justify}
+    \setlength\parindent{0pt}
+    \setlength{\parskip}{0.75em minus 0.25em}
+    \normalsize\rmfamily
+    \pagestyle{unnumberedchapter}
+    %% TOC format for chapters
+    \titlecontents{chapter}
+    [0em]
+    {\sffamily\setlength{\vspace}{0.125in}}
+    {\sffamily\normalsize\bfseries\chaptertitlename\enspace\thecontentslabel\hspace*{1pt}:\enspace}
+    {\sffamily\normalsize\bfseries}
+    {\sffamily\normalsize\bfseries\titlerule*[0.35pc]{\enspace}\contentspage}
+    [\hrule\setlength{\vspace}{0.0625in}]
+}
+{ \clearpage{\thispagestyle{empty}\cleardoublepage}\end{justify} }
+
+
+%% Wrap all unnumbered and unlisted chapters (FM) in this environment
+\newenvironment{unlistedchapterenv}
+{
+    \renewcommand{\chaptertitlename}{\chaptername} 
+    \pagestyle{plain}
+    \setcounter{secnumdepth}{-2}
+    \begin{justify}
+    \setlength\parindent{0pt}
+    \setlength{\parskip}{0.75em minus 0.25em}
+    \normalsize\rmfamily
+}
+{ \clearpage{\thispagestyle{empty}\cleardoublepage}\end{justify} }
+
+%% TOC format for sections
+\titlecontents{section}
+[0em]
+{\LibertinusSerifSB}{\thecontentslabel}{}
+{\enspace\titlerule*[0.35pc]{.}\enspace\contentspage}
+
+\titlecontents{subsection}
+[2.3em]
+{}{\thecontentslabel}{}
+{\enspace•\enspace\thecontentspage}
+
+\titlecontents{subsubsection}
+[4.6em]
+{}{\itshape\thecontentslabel}{\itshape}
+{\enspace•\enspace\thecontentspage}
+
+
+%% Title format for parts
+\titleformat{\part}[display]
+    {\filcenter\sffamily\HUGE\fontseries{sb}\selectfont\scshape\setstretch{1.1}}
+    {\Huge\textbf{\createrule[0.4pt] Part \thepart \createrule[0.4pt]}}
+    {0em}{#1}
+    
+%% Title format for unnumbered parts
+\titleformat{name=\part,numberless}[hang]
+    {\filcenter\sffamily\HUGE\fontseries{sb}\selectfont\scshape\setstretch{1.1}}
+    {}
+    {0em}{\createrule[0.4pt] #1 \createrule[0.4pt]}[]
+
+
+%% Title format for chapters
+\titleformat{\chapter}[display]
+    {\sffamily\HUGE\fontseries{sb}\selectfont\setstretch{1.1}\raggedright}
+    {\createstrut{96pt}\setlength{\parskip}{0pt}\setlength{\vspace}{0pt}\fontsize{84}{0}\fontseries{sb}\selectfont{\thechapter}}
+    {0.5em}{#1}
+
+%% Title format for unnnumbered chapters
+\titleformat{name=\chapter,numberless}[display]
+    {\filleft\sffamily\HUGE\fontseries{sb}\selectfont\setstretch{1.1}\raggedleft}{}
+    {0.5em}{#1}
+
+
+%% Title formats for heading levels
+\titleformat{\section}
+    {\sffamily\LARGE\bfseries\setstretch{1.1}\raggedright}{\thesection}{1em}{#1}
+\titleformat{\subsection}
+    {\sffamily\Large\bfseries\setstretch{1.1}\raggedright}{\thesubsection}{1em}{#1}
+\titleformat{\subsubsection}
+    {\sffamily\large\bfseries\setstretch{1.1}\raggedright}{\thesubsubsection}{1em}{#1}
+\titleformat{\paragraph}
+    {\sffamily\normalsize\bfseries\setstretch{1.1}\raggedright}{\theparagraph}{1em}{#1}
+\titleformat{\subparagraph}
+    {\sffamily\normalsize\fontseries{sb}\setstretch{1.1}\raggedright}{\thesubparagraph}{1em}{#1}
+
+\titlespacing*{\section}{0pt}{15pt minus 3pt}{1pt minus 0.25pt}
+\titlespacing*{\subsection}{0pt}{15pt minus 3pt}{1pt minus 0.25pt}
+\titlespacing*{\subsubsection}{0pt}{12pt}{1pt minus 0.25pt}
+\titlespacing*{\paragraph}{0pt}{12pt}{1pt minus 0.25pt}
+\titlespacing*{\subparagraph}{0pt}{12pt}{1pt minus 0.25pt}
+
+
+%% =============================================
+%% Front Matter
+%% =============================================
+
+%% If the parameter passed is `1`, initialize `\theedition` to an empty string
+%% Else, convert the number to it's ordinal string form, prepend it to ` Edition`, and initialize `\theedition` with this
+
+\renewcommand{\title}[1]
+{
+    %% titlesec redef's `thetitle`. Ugly workaround for this
+    \expandafter\newcommand\csname thetitle\endcsname{#1}
+    \expandafter\newcommand\csname thebooktitle\endcsname{#1}
+}
+
+\renewcommand{\date}[1]
+{
+    \DTMsavedate{uploaddate}{#1}
+}
+
+%\def\thedate {\DTMusedate{uploaddate}}
+
+\newcommand{\edition}[1]
+{
+    \ifdim#1pt=1pt
+        \expandafter\newcommand\csname theedition\endcsname{}
+    \else%
+        \expandafter\newcommand\csname theedition\endcsname{\Ordinalstringnum{#1} Edition}
+        
+    \fi%
+    \expandafter\newcommand\csname theeditionint\endcsname{#1}
+}
+
+%% Initialize `\thesubtitle` with the passed parameter
+\newcommand{\subtitle}[1]
+{
+    \expandafter\newcommand\csname thesubtitle\endcsname{#1}
+}
+
+%% Replace commas in `\theauthor` to newline
+\newcommand{\sepauthors}[1]
+{
+    \readlist*\authorlist{#1}
+    
+    \foreachitem\x\in\authorlist[]
+    {
+        \x\setlength{\parskip}{0.125in}\par
+    }
+}
+
+\newcommand{\uploadcount}[1]
+{
+    \expandafter\newcommand\csname theuploadcount\endcsname{#1}
+}
+
+\newcommand{\isbnten}[1]
+{
+    \expandafter\newcommand\csname theisbnten\endcsname{#1}
+    \StrDel{#1}{-}[\temp]
+    \def\revurl{\expandafter\url\expandafter{https://packt.link/r/\temp}}
+    \def\revlink{\expandafter{https://packt.link/r/\temp}}
+}
+
+\newcommand{\isbnthirteen}[1]
+{
+    \expandafter\newcommand\csname theisbnthirteen\endcsname{#1}
+}
+
+
+\newcommand{\unhyphenate}[1]{
+    \StrDel{#1}{-}[\temp]
+    \ignorespaces\temp\ignorespaces
+}
+
+%% Returns the correct collective form; 
+%% "author" or "authors"
+\newcommand{\autcolform}
+{
+    \readlist*\authorlist{\theauthor}
+    \ifdim\authorlistlen pt>1pt \setlength{\hspace}{-.5em}authors%
+    \else \setlength{\hspace}{-.5em}author%
+    \fi%
+}
+
+\newcommand{\fulltitle}
+{
+    \ifdim\theeditionint pt>1pt \thebooktitle, \theedition%
+    \else \thebooktitle%
+    \fi%
+}
+
+\newcommand{\prodref}
+{\ignorespaces
+    \theuploadcount\setlength{\hspace}{-0.8em}
+    \DTMsetdatestyle{ddmmyy}\unhyphenate{\Today}\DTMsetdatestyle{ddmmyyyy}
+}
+
+
+%% "fmtitlepage" environment. 
+%% Used for the first page in FM
+
+\newenvironment{fmtitlepage}
+    {\begin{spacing}{1.2}\sffamily\setlength{\parskip}{0.25in}}
+    {\normalsize\end{spacing}\setlength{\parskip}{0.75em minus 0.25em}}
+
+%% "fmcopyrightpage" environment. 
+%% Used for the copyright page in FM
+
+\newenvironment{fmcopyrightpage}
+    {\begin{spacing}{1.2}\small}
+    {\end{spacing}}
+
+%% Styles
+
+\newenvironment{temporary} {}{}
+
+\newcommand{\booktitle}[1]
+    { \HUGE\fontseries{b}\selectfont #1 }
+\newcommand{\bookedition}[1]
+    { \LARGE\fontseries{mb}\selectfont #1 }
+\newcommand{\booksubtitle}[1]
+    { \LARGE\fontseries{mb}\selectfont #1 }
+\newcommand{\authorname}[1]
+    { \Large\fontseries{b}\selectfont #1 }
+\newcommand{\packtlogofooter}[1]
+    { \normalsize\fontseries{mb}\selectfont #1 }
+\newcommand{\copyrighttitle}[1]
+    { \begin{spacing}{1}\LARGE\fontseries{b}\selectfont {\sffamily #1}\end{spacing} }
+\newcommand{\copyrightedition}[1]
+    { \begin{spacing}{1}\fontseries{mb}\selectfont\normalsize {\sffamily #1}\end{spacing} }
+
+%% =============================================
+%% Infobox style
+%% =============================================
+
+\newtcolorbox{infobox}
+{
+    breakable=true,
+    parbox=false,
+    width=\textwidth, height=0.75in,height plus=9.25in,
+    left=0.8125in, right=5pt, top=5pt, bottom=5pt,
+    grow to left by=0.05in, grow to right by=0.025in,
+    nobeforeafter,
+    enhanced,
+    frame hidden,
+    interior hidden,
+    fonttitle=\bfseries,
+    sharp corners,
+    underlay={
+        \begin{tcbclipinterior}
+            \node[anchor=west]
+             at (interior.west) {
+                \includegraphics[]{images/infobox.pdf}};
+        \end{tcbclipinterior},
+        }
+}
+
+%% =============================================
+%% Tipbox style
+%% =============================================
+
+\newtcolorbox{tipbox}
+{
+    breakable=true,
+    parbox=false,
+    width=\textwidth, height=0.75in,
+    left=0.8125in, right=5pt, top=5pt, bottom=5pt,
+    grow to left by=0.05in, grow to right by=0.025in,
+    nobeforeafter,
+    enhanced,
+    frame hidden,
+    interior hidden,
+    fonttitle=\bfseries,
+    sharp corners,
+    underlay={
+        \begin{tcbclipinterior}
+            \node[anchor=west]
+             at (interior.west) {
+                \includegraphics[]{images/tipbox.pdf}};
+        \end{tcbclipinterior},
+        }
+}
+
+%% =============================================
+%% Figure styles
+%% @param_1: 
+%% =============================================
+
+\newenvironment{figureenv}
+{
+    \begin{minipage}[t]{\linewidth}
+    \captionsetup{type=figure}
+    \centering
+}
+{
+    \end{minipage}
+}
+
+
+
+%% =============================================
+%% Codeblock styles
+%% @param_1: Lang. Refer: 
+%%  {https://www.overleaf.com/learn/latex/Code_Highlighting_with_minted}
+%% for a non-exhaustive list of supported lexers.
+%% =============================================
+
+\definecolor{codeblock-body}{rgb}{0.98, 0.98, 0.98}
+\definecolor{codeblock-border}{rgb}{0.88, 0.88, 0.88}
+
+\renewcommand{\theFancyVerbLine}
+    { \textcolor[rgb]{0.25,0.25,0.25}{\ttfamily{\arabic{FancyVerbLine}}} }
+
+\newtcblisting{codeblock}[1][text]
+{
+    breakable=true,
+    nobeforeafter,
+    listing engine=minted,
+    minted style=\codestyle,
+    minted language=#1,
+    minted options={
+        baselinestretch=1,
+        breaklines,
+        breaksymbolleft=,
+        mathescape,
+        numbersep=5mm
+    },
+    colback=codeblock-body,
+    frame hidden,
+    sharp corners,
+    listing only,
+    left=4mm,
+    enhanced,
+    overlay={
+        \begin{tcbclipinterior}
+        \fill[codeblock-border] (frame.south west) rectangle ([xshift=2mm]frame.north west);
+        \end{tcbclipinterior}
+    }
+}
+
+\newtcblisting{numberedcodeblock}[1][text]
+{
+    breakable=true,
+    nobeforeafter,
+    listing engine=minted,
+    minted style=\codestyle,
+    minted language=#1,
+    minted options={
+        baselinestretch=1,
+        breaklines,
+        breaksymbolleft=,
+        mathescape,
+        linenos,
+        numbersep=4mm
+    },
+    colback=codeblock-body,
+    frame hidden,
+    sharp corners,
+    listing only,
+    left=10mm,
+    enhanced,
+    overlay={
+        \begin{tcbclipinterior}
+        \fill[codeblock-border] (frame.south west) rectangle ([xshift=8mm]frame.north west);
+        \end{tcbclipinterior}
+    }
+}
+
+
+%% =============================================
+%% Console styles
+%% @param_1: Lang. Refer: 
+%%  {https://www.overleaf.com/learn/latex/Code_Highlighting_with_minted}
+%% for a non-exhaustive list of supported lexers.
+%% =============================================
+
+\definecolor{console-body}{rgb}{0.16, 0.17, 0.21}
+\definecolor{console-border}{rgb}{0.27, 0.28, 0.35}
+\definecolor{console-color}{rgb}{0.97, 0.97, 0.95}
+
+\newtcblisting{consoleblock}
+{
+    breakable=true,
+    nobeforeafter,
+    listing engine=minted,
+    minted style=bw,
+    minted language=text,
+    minted options={
+        baselinestretch=1,
+        breaklines,
+        breaksymbolleft=,
+        mathescape,
+        numbersep=5mm,
+        formatcom=\color{console-color}
+    },
+    colback=console-body,
+    frame hidden,
+    sharp corners,
+    listing only,
+    left=4mm,
+    enhanced,
+    overlay={
+        \begin{tcbclipinterior}
+        \fill[console-border] (frame.south west) rectangle ([xshift=2mm]frame.north west);
+        \end{tcbclipinterior}
+    }
+}
+
+
+%% =============================================
+%% Math
+%% =============================================
+
+\RequirePackage{amsfonts, amssymb, amsmath}
+\RequirePackage{xfrac}
+\newcommand{\ra}[1]{\renewcommand{\arraystretch}{#1}} %% ???
+
+%% =============================================
+%% Cross-references
+%% =============================================
+
+\RequirePackage{hyperref}
+\IfStrEq{\outputformat}{ebook}
+{
+    \hypersetup{
+        hidelinks,
+        colorlinks=false,
+        linkcolor=black,
+        filecolor=black,      
+        urlcolor=black
+    }
+    \def\codestyle{borland}
+}
+{
+    \hypersetup{nolinks=true}
+    \def\codestyle{bw}
+}
+
+
+%% =============================================
+%% Citations and bibliography 
+%% (check for command overwrites)
+%% =============================================
+
+\RequirePackage{cite}
+%\RequirePackage{natbib}
+%\RequirePackage{chapterbib}
+
+%% =============================================
+%% Indexing 
+%% =============================================
+
+\usepackage{imakeidx}
+\makeindex[columns=2, title=Index, 
+ options= -s indexstyle.ist, intoc]
+\indexsetup{firstpagestyle=plain}
+\renewcommand{\@idxitem}{\par\hangindent 75\p@}
+
+
+
+
+\newcommand{\fmreviewtxt}
+{
+    \IfStrEq{\outputformat}{ebook}
+        {\ignorespaces Please \href{\revlink}{click here to go straight to the Amazon review page for this book} and share your feedback.}
+        {\ignorespaces Scan the QR code below to go straight to the Amazon review page for this book and share your feedback.
+    
+            \begin{center}
+            \includegraphics[width=3cm]{qr-code}\\
+            {\small\revurl}
+            \end{center}
+        }
+}
+
+\newcommand{\bmreviewtxt}
+{
+    \IfStrEq{\outputformat}{ebook}
+        {\ignorespaces If you purchased the book from Amazon, please \href{\revlink}{click here to go straight to the Amazon review page for this book} and share your feedback or leave a review on the site that you purchased it from.}
+        {\ignorespaces Scan the QR code below to go straight to the Amazon review page for this book and share your feedback.
+    
+            \begin{center}
+            \includegraphics[width=3cm]{qr-code}\\
+            {\small\revurl}
+            \end{center}
+        }
+}
+
+
+
+%% =============================================
+%% Not to be used in our books.
+%% Only used for illustrative purpose in the 
+%% template documentation.
+%% =============================================
+
+\newtcolorbox{examplebox}{
+    bicolor,
+    breakable=true,
+    nobeforeafter,
+    parbox=false,
+    colbacklower=white,
+    left=4mm,
+    overlay={
+        \draw[tcbcolframe, line width=0.4pt, dashed] (segmentation.west)--(segmentation.east);
+    }
+}
+
+\newtcblisting{sourcetext}
+{
+    breakable=true,
+    nobeforeafter,
+    listing engine=minted,
+    minted style=bw,
+    minted language=text,
+    minted options={
+        baselinestretch=1,
+        breaklines,
+        mathescape,
+        numbersep=5mm
+    },
+    frame hidden,
+    sharp corners,
+    listing only,
+    left=0in, right=0in, top=0in, bottom=0in,
+    grow to left by=0.05in, grow to right by=0.025in,
+    enhanced
+}
+
+\newtcolorbox{bonusinfo}{
+    breakable=true,
+    nobeforeafter,
+    parbox=false,
+    colback=blue!5!white,
+    colframe=blue!75!black,
+    fonttitle=\bfseries,
+    colbacktitle=blue!85!black,enhanced,
+    attach boxed title to top left={xshift=4mm, yshift=-3mm},
+    top=5mm,
+    title=\sffamily Bonus Info
+}
+
+\newcommand{\dummypart}[1][Part Title]
+{
+    \begin{temporary}
+    
+    \filcenter\sffamily\scshape\Huge\textbf{\createrule[0.4pt]  Part I \createrule[0.4pt] }
+    
+    \filcenter\sffamily\HUGE\fontseries{sb}\selectfont\scshape\setstretch{1.1} #1
+
+    \end{temporary}
+}
+
+\newcommand{\dummychapter}[1][Chapter Title]
+{
+    \begin{temporary}
+    
+    \sffamily\createstrut{48pt}\setlength{\parskip}{0pt}\setlength{\vspace}{0pt}\fontsize{84}{0}\fontseries{sb}\selectfont{1}
+
+    \setlength{\vspace}{0.25em}
+
+    \sffamily\HUGE\fontseries{sb}\selectfont\setstretch{1.1} Chapter Title
+    
+    \end{temporary}
+}

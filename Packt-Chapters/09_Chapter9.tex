@@ -1,0 +1,194 @@
+\begin{chapterenv}
+
+\chapter{Process Reward Models (PRMs)}
+
+\section{Outcome Rewards vs Process Rewards}
+
+Imagine you're a math teacher grading a student's work. You have two options:
+
+\textbf{Option 1: Outcome-Based Grading (ORM).} Only look at the final answer. Correct answer = full credit. Wrong answer = no credit. Don't care how they got there.
+
+\textbf{Option 2: Process-Based Grading (PRM).} Grade each step of the solution. Step 1 correct gives partial credit, step 2 correct gives more, and so on. Even if the final answer is wrong, correct reasoning earns partial credit.
+
+Which produces better learning? Obviously process-based! Students learn \textit{how to think}, not just how to guess answers. Same principle applies to training AI!
+
+\begin{infobox}
+\textbf{Outcome Reward Model (ORM):}
+
+$$r_{\text{ORM}}(x, y) = r(x, y_{\text{final}})$$
+
+Function signature: $r_{\text{ORM}}: \text{(prompt, response)} \rightarrow \mathbb{R}$. Input is the complete response, output is a single number (how good is the final answer?). Example: ``Is the final answer correct? +10 if yes, $-5$ if no.''
+
+\textbf{Process Reward Model (PRM):}
+
+$$r_{\text{PRM}}(x, y) = \sum_{t=1}^T r_t(x, y_{1:t})$$
+
+Function signature: $r_t: \text{(prompt, partial response)} \rightarrow \mathbb{R}$. Returns a reward for each step $t$. Input is a partial response (up to some step), output is a number for that step. Run multiple times, once per step. Total reward = sum of all step rewards.
+
+\textbf{Key difference:} ORM gives a single score for the entire response. PRM gives a score for each reasoning step.
+\end{infobox}
+
+\section{The Power of Step-by-Step Feedback}
+
+\textbf{Problem:} Solve $2x + 5 = 13$
+
+\paragraph{Scenario 1: Correct Solution}
+
+\begin{center}
+\begin{tabular}{lp{4cm}cc}
+\toprule
+\textbf{Step} & \textbf{Work Shown} & \textbf{ORM} & \textbf{PRM} \\
+\midrule
+1 & ``Subtract 5 from both sides'' & --- & +2 \\
+2 & ``$2x = 8$'' & --- & +2 \\
+3 & ``Divide both sides by 2'' & --- & +2 \\
+4 & ``$x = 4$'' & --- & +4 \\
+\midrule
+\textbf{Final} & Answer: $x = 4$ & \textbf{+10} & \textbf{+10} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Both ORM and PRM give full credit. So far, no difference!
+
+\paragraph{Scenario 2: Wrong Final Answer, But Good Process}
+
+\begin{center}
+\begin{tabular}{lp{4cm}cc}
+\toprule
+\textbf{Step} & \textbf{Work Shown} & \textbf{ORM} & \textbf{PRM} \\
+\midrule
+1 & ``Subtract 5 from both sides'' & --- & +2 \\
+2 & ``$2x = 8$'' & --- & +2 \\
+3 & ``Divide both sides by 2'' & --- & +2 \\
+4 & ``$x = 5$'' (arithmetic error!) & --- & $-2$ \\
+\midrule
+\textbf{Final} & Answer: $x = 5$ & \textbf{$-5$} & \textbf{+4} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Big difference!} ORM heavily penalizes ($-5$) even though process was 75\% correct. PRM gives +4, recognizing good reasoning despite an arithmetic slip.
+
+\paragraph{Scenario 3: Correct Final Answer, But Flawed Reasoning}
+
+\begin{center}
+\begin{tabular}{lp{4.5cm}cc}
+\toprule
+\textbf{Step} & \textbf{Work Shown} & \textbf{ORM} & \textbf{PRM} \\
+\midrule
+1 & ``Multiply both sides by 2'' & --- & $-1$ \\
+2 & ``$4x + 10 = 26$'' & --- & 0 \\
+3 & ``Subtract 10: $4x = 16$'' & --- & +1 \\
+4 & ``Divide by 4: $x = 4$'' & --- & +2 \\
+\midrule
+\textbf{Final} & Answer: $x = 4$ & \textbf{+10} & \textbf{+2} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{HUGE difference!} ORM gives full credit (+10)---can't tell the reasoning was flawed. PRM gives only +2---correctly identifies the unnecessarily complicated approach.
+
+\textbf{What the model learns:} With ORM: ``Somehow I got the right answer. Keep doing\ldots\ whatever I did?'' With PRM: ``My initial strategy was wrong. I should subtract first, not multiply.'' PRM teaches \textit{how to reason}, not just how to get lucky!
+
+\section{Training Process Reward Models}
+
+\begin{infobox}
+\textbf{How to Train a PRM:}
+
+\textbf{Step 1: Collect Step-Level Annotations.} This is expensive! For each problem, the model generates a solution with explicit reasoning steps, and a human annotator reviews \textit{each individual step}: correct reasoning, incorrect reasoning, or unclear/ambiguous. Store training triple: $(\text{problem}, \text{partial\_solution}_{1:t}, \text{label}_t)$.
+
+\textbf{Example Annotation Sequence:}
+
+\textit{Problem:} ``What is 15\% of 200?''
+
+After Step 1: ``15\% means 0.15'' $\to$ POSITIVE (correct understanding).
+
+After Step 2: ``15\% means 0.15, so $0.15 \times 200$'' $\to$ POSITIVE (correct setup).
+
+After Step 3: ``15\% means 0.15, so $0.15 \times 200 = 3$'' $\to$ NEGATIVE (arithmetic error!).
+
+After Step 4: ``15\% means 15/100 = 0.15, so $0.15 \times 200 = 30$'' $\to$ POSITIVE (correct solution).
+
+\textbf{Step 2: Train the PRM.} Architecture is a transformer model (similar to ORM). Input: $(\text{problem}, \text{partial\_solution}_{1:t})$. Output: $P(\text{step}_t \text{ is correct})$. Loss: Binary cross-entropy on step-level labels. For each training example, encode problem and partial solution, compute binary classification loss against the target label, and update model parameters with gradient descent.
+\end{infobox}
+
+\subsection{Data Collection Strategies}
+
+\begin{infobox}
+\textbf{Challenge: Step-Level Annotation is Expensive!}
+
+Annotating every single step is 10--20$\times$ more expensive than just labeling final answers.
+
+\textbf{Practical solutions:}
+
+\textbf{1. Synthetic Data.} For math: use symbolic solvers to verify each step. For code: check if each line compiles and maintains correctness. Cheaper but only works for objective tasks.
+
+\textbf{2. Sparse Annotation.} Only annotate steps where model is uncertain. Active learning: PRM requests labels for confusing steps. Reduces annotation cost by 5--10$\times$.
+
+\textbf{3. Weak Supervision.} Automatic heuristics (length, coherence, keyword matching). Not perfect but cheap at scale. Use as noisy training signal, validate with small amount of human labels.
+
+\textbf{4. Knowledge Distillation.} Train expensive PRM on small amount of human data. Use it to label more data automatically. Train cheaper PRM on larger automatically-labeled dataset.
+\end{infobox}
+
+\section{Using PRMs for Best-of-N Sampling}
+
+Remember best-of-N sampling? Generate $N$ responses, pick the best one? With an ORM, you score each complete response and pick the highest. With a PRM, you can do something smarter!
+
+\textbf{PRM-guided best-of-N:} Generate $N$ responses each with explicit reasoning steps, score \textit{every step} with PRM for each response, compute total score as sum of step scores, pick response with highest total score.
+
+\textbf{Why this is better:} Can identify flawed reasoning even if final answer looks good, provides more fine-grained signal (scoring 10 steps vs 1 answer), and can detect where model goes wrong (useful for debugging).
+
+\textbf{PRM Best-of-N Example}
+
+\textbf{Problem:} ``A store has a 20\% off sale. If a jacket originally costs \$80, what's the final price?''
+
+\textbf{Response 1:} (1) ``20\% off means we pay 80\%'' [PRM: +2], (2) ``80\% of \$80 = $0.80 \times 80$'' [PRM: +2], (3) ``$0.80 \times 80 = 64$'' [PRM: +2], (4) ``Final price: \$64'' [PRM: +4]. \textbf{Total: +10} (perfect reasoning).
+
+\textbf{Response 2:} (1) ``20\% off means discount is \$20'' [PRM: $-1$], (2) ``\$80 $-$ \$20 = \$60'' [PRM: 0], (3) ``Final price: \$60'' [PRM: $-2$]. \textbf{Total: $-3$} (incorrect logic).
+
+\textbf{Response 3:} (1) ``20\% of \$80 = $\$80 \times 0.20 = \$16$'' [PRM: +2], (2) ``\$80 $-$ \$16 = \$64'' [PRM: +2], (3) ``Final price: \$64'' [PRM: +4]. \textbf{Total: +8} (correct, but less explicit).
+
+\textbf{Decision:} Pick Response 1 (highest PRM score: +10)! An ORM would have rated Responses 1 and 3 equally (+10 each), but PRM correctly identifies Response 1 as having more thorough reasoning.
+
+\section{Why PRMs Dramatically Improve Math and Reasoning}
+
+\begin{infobox}
+\textbf{Empirical Results from ``Let's Verify Step by Step'' (Lightman et al., 2023):}
+
+\textbf{On MATH benchmark (competition-level problems):}
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Method} & \textbf{Accuracy} & \textbf{Improvement} \\
+\midrule
+Base model (greedy) & 42.0\% & --- \\
++ ORM best-of-100 & 58.3\% & +16.3\% \\
++ PRM best-of-100 & \textbf{72.2\%} & \textbf{+30.2\%} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{PRM gives 2$\times$ the improvement of ORM!}
+
+\textbf{Why such dramatic gains?} Better exploration (PRM identifies promising partial solutions early), catches lucky guesses (ORM can't tell if model used sound reasoning or luck), partial credit (even failed attempts provide learning signal if some steps were correct), and fine-grained feedback (model learns \textit{where} it went wrong, not just \textit{that} it went wrong).
+\end{infobox}
+
+\section{Combining ORMs and PRMs}
+
+\begin{infobox}
+\textbf{Best Practice: Use Both!}
+
+\textbf{Ensemble approach:}
+
+$$\text{Final score} = \alpha \cdot \text{PRM score} + (1-\alpha) \cdot \text{ORM score}$$
+
+where $\alpha \in [0,1]$ controls the balance. Typical values: $\alpha = 0.7$ (favor PRM, but don't ignore outcomes entirely).
+
+\textbf{Why combine?} PRM is excellent at judging reasoning process, ORM is excellent at judging final answer correctness. Together: best of both worlds!
+
+\textbf{Real-world pipeline:} Generate $N$ candidate responses (e.g., $N=64$), score each with PRM (step-by-step), keep top $K$ by PRM score (e.g., $K=8$), score these $K$ with ORM (final answer), return highest ORM score from the $K$. This two-stage approach is computationally efficient: PRM does heavy filtering, ORM makes the final decision.
+\end{infobox}
+
+\end{chapterenv}

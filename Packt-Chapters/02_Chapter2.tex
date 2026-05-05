@@ -1,0 +1,260 @@
+\begin{chapterenv}
+
+\chapter{Why LLMs Need RL: The Alignment Gap}
+
+\section{The Gap You Have Already Felt}
+
+If you have used a modern AI assistant (ChatGPT, Gemini, Claude), you have experienced something remarkable. You type a question, and the model responds with a coherent, helpful, and often surprisingly thoughtful answer. It feels like talking to someone who understands you.
+
+But it was not always this way.
+
+The raw language models underneath these assistants, the ones that come straight out of training on internet text, behave very differently. To see why, imagine that you could strip away whatever secret sauce makes ChatGPT \textit{feel} helpful and talk to the base model directly. You ask ``What is a good way to handle stress?''
+
+\begin{infobox}
+\textbf{The same question, two very different models:}
+
+\textbf{Raw base model} (trained only to predict text):
+
+``What is a good way to handle stress?'' is a question posted on Reddit by user StressedOut99. Top comment: ``Just do not think about it lol.'' Second comment: ``Have you tried drinking?'' Third comment: [deleted]...
+
+\vspace{0.5em}
+\textbf{Aligned assistant} (trained to be helpful):
+
+Here are some evidence-based approaches to managing stress: deep breathing exercises, regular physical activity, maintaining social connections, and setting boundaries on work hours. Would you like me to go deeper on any of these?
+\end{infobox}
+
+The first model is not trying to help you. It is completing a pattern. It saw millions of internet pages that look like question-followed-by-responses, and it faithfully reproduces that format, including all the noise, bad advice, and toxicity baked into its training data. The second model is doing something fundamentally different: it is trying to be \textit{useful}.
+
+Something happened between the raw model and the helpful assistant. Something fundamental changed in the way the model decides what to say. Understanding that ``something'' is the purpose of this entire book, and this chapter is where we name the problem.
+
+\section{What Is Alignment?}
+
+\textbf{Alignment} means making AI systems do what humans actually want, not just what we accidentally trained them to do.
+
+Imagine teaching a robot to ``maximize paperclips.'' A perfectly aligned robot would make paperclips within reasonable bounds. A misaligned robot might convert the entire universe into paperclips. Technically correct but catastrophically wrong.
+
+For language models, alignment means learning to be
+
+\begin{enumerate}[nosep]
+    \item \textbf{Helpful}: Actually accomplish what the user wants
+    \item \textbf{Harmless}: Do not produce dangerous or toxic content
+    \item \textbf{Honest}: Do not make things up (hallucinate)
+\end{enumerate}
+
+\begin{infobox}
+Think of alignment like teaching three different children:
+
+\textbf{The Unaligned Child:} Told to ``get good grades,'' decides to cheat on every test. Technically following instructions, but missing the point entirely.
+
+\textbf{The Aligned Child:} Understands the \textit{spirit} of the instruction. Learns properly, earns grades honestly, develops good values along the way.
+
+\textbf{The Reasoning Child:} Not only has good values, but can \textit{show their work}. When asked ``Why did you choose this answer?'' they can walk you through their thinking step by step. They do not just get the right answer; they get it for the right reasons, and they can explain why.
+
+Traditional language model training produces the first child. Alignment techniques (the subject of this book) aim to produce the third.
+\end{infobox}
+
+\section{The Training Mismatch}
+
+So, if alignment is the goal, why do language models not get it automatically? After all, there is plenty of helpful, honest, harmless text on the internet. Should the model not learn to be good?
+
+The answer lies in what the training objective actually optimizes for. Let us look at the math and then at why it creates a gap.
+
+\subsection{Traditional Training: The Math}
+
+\textbf{What we train on}: Internet text (Reddit, books, websites, Wikipedia, code, and much more).
+
+\textbf{Training goal}: Given some text, predict what word comes next.
+
+\begin{infobox}
+\textbf{The Training Objective}
+
+\begin{center}
+\begin{tabular}{p{0.43\textwidth}p{0.43\textwidth}}
+\toprule
+\textbf{Formal Math} & \textbf{What It Really Means} \\
+\midrule
+$\mathcal{L} = -\log P(w_{\text{next}} \,|\, w_1, w_2, \ldots, w_n)$ & \textbf{Loss} = How surprised the model is by the correct answer \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Why we use each component:}
+
+\begin{center}
+\begin{tabular}{p{0.28\textwidth}p{0.62\textwidth}}
+\toprule
+\textbf{Component} & \textbf{Purpose} \\
+\midrule
+$\mathcal{L}$ = Loss function & A single number measuring ``how wrong'' the model is \\
+$P(\cdot)$ = Probability & Models language as a probability distribution over words \\
+$\log$ = Logarithm & Converts tiny probabilities to manageable numbers; turns multiplication into addition (so $P_1 \times P_2$ becomes $\log P_1 + \log P_2$) \\
+$-$ (minus sign) & Flips sign so that $P$ near 1 (confident, good) gives low loss \\
+$w_{\text{next}}$ = Next word & What we are trying to predict \\
+$|$ = ``given'' & Separates what we know (context) from what we predict \\
+$w_1, w_2, \ldots, w_n$ = Context & All the previous words that help us predict \\
+\bottomrule
+\end{tabular}
+\end{center}
+\textbf{Why this specific formula?}
+
+\begin{center}
+\begin{tabular}{p{0.35\textwidth}p{0.55\textwidth}}
+\toprule
+\textbf{Design choice} & \textbf{Reason} \\
+\midrule
+Use probability $P(\cdot)$? & Language is naturally probabilistic (multiple valid next words exist) \\
+Use $\log$? & Probabilities multiply ($P_1 \times P_2$), logs add ($\log P_1 + \log P_2$). Addition is easier! \\
+Use negative sign? & $P$ near 1 (good) should give low loss; $-\log$ achieves this \\
+Condition on context with $|$? & The next word depends heavily on what came before \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{infobox}
+
+\textbf{Let us break this down with a real example.}
+
+\textbf{Sentence:} ``The cat sat on the \_\_\_''
+
+\textbf{Correct word:} ``mat''
+
+\paragraph{Step 1: Model assigns probabilities to ALL possible next words}
+
+The model considers every word in its vocabulary (about 50,000 words) and assigns each a probability:
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Word} & \textbf{Probability $P(w)$} & \textbf{Percentage} \\
+\midrule
+``mat'' & 0.40 & 40\% \\
+``floor'' & 0.30 & 30\% \\
+``chair'' & 0.20 & 20\% \\
+``table'' & 0.05 & 5\% \\
+All others & 0.05 & 5\% \\
+\midrule
+\textbf{Total} & \textbf{1.00} & \textbf{100\%} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Step 2: Calculate the loss for the correct word (``mat'')}
+
+\begin{align*}
+\mathcal{L} &= -\log P(\text{mat} \,|\, \text{The cat sat on the}) \\
+&= -\log(0.40) \\
+&= -(-0.916) \quad \text{(the log of 0.40 is negative)} \\
+&= 0.916
+\end{align*}
+
+\paragraph{Step 3: What does this number mean?}
+
+A loss of 0.916 is moderate. To build intuition for what loss values mean, here is a rough scale:
+
+\begin{center}
+\begin{tabular}{lcl}
+\toprule
+\textbf{Loss value} & \textbf{Probability} & \textbf{Quality} \\
+\midrule
+0.10 & 90\% & Excellent \\
+0.50 & 60\% & Good \\
+\textbf{0.92} & \textbf{40\%} & \textbf{Okay (our example)} \\
+1.50 & 22\% & Poor \\
+3.00 & 5\% & Terrible \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The model guess was not perfect, but it was reasonable!
+
+\paragraph{Step 4: What if the model guess was different?}
+
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Scenario} & \textbf{$P(\text{mat})$} & \textbf{Loss} & \textbf{Quality} \\
+\midrule
+Model is confident & 0.90 & 0.105 & Excellent \\
+Model is pretty sure & 0.60 & 0.511 & Good \\
+\textbf{Current} & \textbf{0.40} & \textbf{0.916} & \textbf{Okay} \\
+Model is unsure & 0.20 & 1.609 & Poor \\
+Model is confused & 0.05 & 2.996 & Terrible \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{infobox}
+\textbf{The Pattern: This is the KEY insight}
+
+\textbf{Higher probability $P$ $\rightarrow$ Lower loss $\mathcal{L}$ $\rightarrow$ Better model!}
+
+We train the model to minimize loss, which means maximizing the probability it assigns to correct words.
+
+\textbf{Training process:}
+\begin{enumerate}[nosep]
+    \item Model makes a prediction (assigns probabilities)
+    \item We calculate loss (how wrong was it?)
+    \item We update the model parameters to reduce loss
+    \item Repeat billions of times!
+\end{enumerate}
+\end{infobox}
+
+\subsection{What the Model Learns (and Does Not Learn)}
+
+\textbf{What DOES the model learn from this training?}
+
+\begin{itemize}[nosep]
+    \item How to write grammatically correct sentences
+    \item Patterns that \textit{look like} knowledge, though the model has no way to verify whether what it is saying is actually true (this is why hallucination is such a persistent problem)
+    \item How to continue patterns in text
+    \item Writing style and structure
+\end{itemize}
+
+\textbf{What the model does NOT learn:}
+
+\begin{itemize}[nosep]
+    \item What makes a response actually helpful to humans
+    \item When to refuse harmful or inappropriate requests
+    \item How to admit ``I do not know'' instead of making things up
+    \item How to pause and \textit{think through} a problem step by step before answering. The model simply blurts out the most statistically likely next word, without internal deliberation (we will see in Chapter 5 how this gap gets addressed as the very first step of training)
+    \item The difference between correlation and good advice
+\end{itemize}
+
+\textbf{The core problem}: The model learns to mimic internet text, including all its flaws. Here is what makes it worse: \textit{the bigger the model, the better it gets at mimicking}. A larger model does not become more aligned. It becomes more \textit{capable} at reproducing whatever patterns exist in the training data, helpful and harmful alike. Capability and alignment are independent axes. You can have a very powerful model that is very misaligned. That is precisely why alignment research matters.
+
+\paragraph{Example: The Toxic Completion Problem}
+
+\textbf{User types}: ``I hate''
+
+\textbf{The Internet training data contains}: Millions of toxic completions.
+
+\textbf{What traditional training teaches:} The model sees ``I hate [toxic content]'' appearing frequently, learns this is a common pattern, predicts toxic completions with high probability, and reproduces toxic content.
+
+\textbf{What we actually want:} The model recognizes that this is a sensitive prompt, responds thoughtfully, and generates something like: ``It sounds like you are frustrated. How can I help?''
+
+\textbf{The gap}: Traditional training has no mechanism to prefer helpful over statistically likely!
+
+\begin{infobox}
+\textbf{The core insight of modern AI alignment:}
+
+\textbf{Old goal:} ``What text is most likely according to internet patterns?''
+
+\textbf{New goal:} ``What response do humans actually prefer?''
+
+This shift, from \textit{likelihood} to \textit{preference}, is what turned raw language models into the assistants we use today.
+
+But the story does not end there. Human preferences are powerful, but they are expensive to collect and sometimes inconsistent. As we will discover later in the book, there is an even more powerful idea: what if, instead of always relying on human opinions, we could \textit{automatically check} whether the model got the right answer? Imagine a math tutor who can verify the solution is correct, not just prefer one essay over another. That shift, from preference to \textit{verification}, is where the field is heading right now, and we will make it concrete in Chapters 11 and 12.
+\end{infobox}
+
+\section{The Road Ahead}
+
+We have named the problem: language models optimized to predict text are not automatically aligned with what humans want. The gap between ``most likely'' and ``most helpful'' is real, and scaling up the model does not close it.
+
+So how do we close it? That is the journey of this book.
+
+In the next chapter, we will build up the reinforcement learning toolkit you will need: the core concepts of rewards, policies, and optimization that underpin every alignment technique (Chapter 3). Then we will set up a hands-on coding environment so you can run experiments yourself (Chapter 4). From there, we will begin closing the alignment gap step by step: first by teaching the model good behavior through carefully curated examples (Chapter 5), then by letting human preferences guide it toward better responses (Chapters 6--7), and ultimately by training it to reason through hard problems and verify its own answers (Part 3).
+
+By the end, you will understand not just \textit{that} these techniques work, but \textit{why} they work, and how to apply them yourself.
+
+Let us begin.
+
+\end{chapterenv}

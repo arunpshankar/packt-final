@@ -1,0 +1,317 @@
+\begin{chapterenv}
+
+\chapter{RL Fundamentals: The Complete Picture}
+
+\section{What Is Reinforcement Learning?}
+
+Reinforcement Learning (RL) is learning through trial and error with feedback. It is how you learned to ride a bike:
+
+\begin{enumerate}[nosep]
+    \item Try something (turn the handlebars to the left)
+    \item See what happens (you start to fall)
+    \item Get feedback (negative, that was bad!)
+    \item Adjust your strategy (the next time, turn less sharply)
+    \item Repeat until you learn what works
+\end{enumerate}
+
+For AI language models, the process is similar:
+
+\begin{enumerate}[nosep]
+    \item AI generates a response
+    \item Humans evaluate it (good/bad/meh)
+    \item AI learns to generate more responses like the good ones
+    \item Repeat millions of times
+    \item AI becomes helpful!
+\end{enumerate}
+
+\begin{infobox}
+\textbf{Supervised Learning} = Learning from a textbook with all answers shown. The teacher says ``The capital of France is Paris,'' you memorize it, and repeat it back. Good for facts, patterns, and specific examples.
+
+\textbf{Reinforcement Learning} = Learning from real-world trial and error. The teacher says ``Learn to cook a delicious pasta.'' You try adding lots of salt (tastes bad), then a little salt (tastes okay), then salt and herbs (tastes great). The teacher tells you which was best. Good for skills, judgment, and complex behaviors.
+
+For language models: Supervised = ``Copy these good responses.'' RL = ``Try many responses, I will tell you which ones I prefer.''
+\end{infobox}
+
+\section{The RL Framework: Five Key Components}
+
+\subsection{Overview}
+
+Every RL system has five key pieces. Think of it like a video game. The following table maps each RL concept to its equivalent language model:
+
+\begin{center}
+\begin{tabular}{p{0.15\textwidth}p{0.25\textwidth}p{0.45\textwidth}}
+\toprule
+\textbf{RL Term} & \textbf{Video Game Analogy} & \textbf{LLM Translation} \\
+\midrule
+Agent & The player & The language model making decisions \\
+Environment & The game world & Everything the model interacts with (the user, the conversation) \\
+State & The current screen & What is happening right now (the prompt + text generated so far) \\
+Action & Controller input & Choosing the next word (token) \\
+Reward & Score / points & Feedback on how helpful the response was \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+These five pieces connect in a loop that repeats at every step:
+
+\begin{center}
+Agent in State $\rightarrow$ Takes Action $\rightarrow$ Gets Reward $\rightarrow$ Moves to New State $\rightarrow$ Repeat
+\end{center}
+
+For a language model, this loop runs once for every single word it writes. The model looks at everything so far (state), picks a word (action), gets some signal about how things are going (reward), and the state updates to include the new word. Then it picks the next word and the cycle continues until the response is complete.
+
+\subsection{The Policy: The Agent's Strategy}
+
+The \textbf{policy} is the agent's decision-making strategy. It answers: ``Given what has happened so far, what should I do next?''
+
+For language models:
+\begin{itemize}[nosep]
+    \item Input: The prompt and everything written so far
+    \item Output: Probability distribution over all possible next words
+    \item Example: Given ``The cat sat on the'', what word comes next?
+\end{itemize}
+
+\begin{infobox}
+\textbf{The Policy Function}
+
+\begin{center}
+\begin{tabular}{p{0.43\textwidth}p{0.43\textwidth}}
+\toprule
+\textbf{Formal Math} & \textbf{What It Really Means} \\
+\midrule
+$\pi(a \,|\, s)$ & Probability of choosing action $a$ when in state $s$ \\
+\midrule
+$\pi_\theta(y_t \,|\, x, y_{1:t-1})$ & Chance of picking word $y_t$ given prompt $x$ and previous words \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Symbol Translation:}
+
+\begin{center}
+\begin{tabular}{p{0.35\textwidth}p{0.55\textwidth}}
+\toprule
+\textbf{Symbol} & \textbf{Meaning} \\
+\midrule
+$\pi$ (pi) = Policy & The brain's decision-making process \\
+$\theta$ (theta) = Parameters & The brain's knowledge (billions of numbers in the model) \\
+$a$ = Action & The choice to make (which word to write) \\
+$s$ = State & Current situation (everything so far) \\
+$y_t$ = Token at time $t$ & The $t$-th word in the response \\
+$x$ = Prompt & The user's question/input \\
+$y_{1:t-1}$ = Previous tokens & All words written before word $t$ \\
+$|$ = ``Given that'' & ``Knowing\ldots'' or ``Based on\ldots'' \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Why condition on previous words with} $|$\textbf{?} Because language has \textit{context dependence}: ``The cat'' might be followed by ``sat'' or ``slept,'' and ``The cat sat'' might be followed by ``on'' or ``down.'' Each choice depends on what came before!
+\end{infobox}
+
+\textbf{The policy in action with real numbers:}
+
+\textbf{State $s$:} ``The cat sat on the''
+
+\textbf{Question:} What word should come next?
+
+The policy $\pi_\theta$ outputs the probabilities for each possible word:
+
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Possible Word} & \textbf{Formal} & \textbf{Probability} & \textbf{Percentage} \\
+\midrule
+``mat'' & $\pi_\theta(\text{mat} \,|\, s)$ & 0.35 & 35\% \\
+``floor'' & $\pi_\theta(\text{floor} \,|\, s)$ & 0.25 & 25\% \\
+``couch'' & $\pi_\theta(\text{couch} \,|\, s)$ & 0.20 & 20\% \\
+``table'' & $\pi_\theta(\text{table} \,|\, s)$ & 0.10 & 10\% \\
+``roof'' & $\pi_\theta(\text{roof} \,|\, s)$ & 0.05 & 5\% \\
+Others & $\pi_\theta(\text{other} \,|\, s)$ & 0.05 & 5\% \\
+\midrule
+\textbf{Total} & & \textbf{1.00} & \textbf{100\%} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{How does the model choose?} The model uses these probabilities like a weighted die: most of the time (35\%), it picks ``mat;'' sometimes (25\%), it picks ``floor;'' rarely (5\%), it picks ``roof.'' This randomness is actually useful because it helps the model explore different possibilities. (The degree of randomness is controlled by a setting called \textit{temperature}, which we will revisit in Chapter 13 when we discuss how to use compute at inference time.)
+
+\textbf{What happens during RL training?}
+
+\textbf{Scenario 1:} The response with ``mat'' gets a high reward (+8). Training increases $\pi_\theta(\text{mat} \,|\, s)$ from 0.35 to 0.45, and response with ``mat'' becomes more likely!
+
+\textbf{Scenario 2:} The response with ``roof'' gets a low reward ($-2$). Training decreases $\pi_\theta(\text{roof} \,|\, s)$ from 0.05 to 0.02. Response with ``roof'' becomes less likely!
+
+\begin{tipbox}
+Training adjusts probabilities based on what leads to good outcomes. Good outcome $\rightarrow$ increase probability. Bad outcome $\rightarrow$ decrease probability. Over millions of examples, the model learns an excellent policy!
+\end{tipbox}
+
+\subsection{The Value Function: Looking Ahead}
+
+The value function estimates: ``How good is my current situation?''
+
+It is like looking at a chess board mid-game and thinking: ``I am in a strong position, likely to win!'' (high value) or ``I am in trouble'' (low value).
+
+For language models, halfway through writing a response, the value function estimates whether things are going well (``probably get +8 reward at the end'') or poorly (``probably get $-3$ reward'').
+
+\begin{infobox}
+\textbf{The Value Function}
+
+\begin{center}
+\begin{tabular}{p{0.43\textwidth}p{0.43\textwidth}}
+\toprule
+\textbf{Formal Math} & \textbf{What It Really Means} \\
+\midrule
+$V^\pi(s) = \mathbb{E}_\pi\!\left[\sum_{t=0}^\infty \gamma^t r_t \,\Big|\, s_0 = s\right]$ & Expected total future reward starting from state $s$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Breaking down each piece and WHY we use it:}
+
+\begin{center}
+\begin{tabular}{p{0.35\textwidth}p{0.55\textwidth}}
+\toprule
+\textbf{Component} & \textbf{Purpose} \\
+\midrule
+$V^\pi(s)$ & ``Value of state $s$'': how good is this situation? \\
+$\mathbb{E}_\pi[\cdot]$ & Expected value: average over many possible futures (because the future is uncertain) \\
+$\sum_{t=0}^\infty$ & Sum all future rewards from now to the end (we care about the total, not just the immediate reward) \\
+$\gamma^t$ & Discount factor raised to power $t$ (immediate rewards matter more than distant ones) \\
+$r_t$ & Reward at time step $t$ (the feedback we get) \\
+$s_0 = s$ & Starting from this specific state $s$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Why the discount factor $\gamma$ (typically 0.99)?} It makes rewards far in the future count slightly less. There is more uncertainty about the distant future, it ensures the series converges to a finite value, and (like money) \$100 today is worth more than \$100 in 10 years. For language models, we care most about the final response quality.
+\end{infobox}
+
+\paragraph{Computing value with actual numbers}
+
+\textbf{Scenario:} You are writing a math solution, currently halfway done.
+
+\textbf{Current state $s$:} ``To solve this, I will first\ldots''
+
+\textbf{Path A} (60\% likely): Complete the answer correctly.
+\begin{itemize}[nosep]
+    \item Step 1: Write next sentence $\to$ reward $r_1 = 0$ (neutral)
+    \item Step 2: Write another sentence $\to$ reward $r_2 = 0$ (neutral)
+    \item Step 3: Finish with correct answer $\to$ reward $r_3 = +10$ (great!)
+    \item Total: $0 + 0 + 10 = 10$
+\end{itemize}
+
+\textbf{Path B} (30\% likely): Make an error, then correct it.
+\begin{itemize}[nosep]
+    \item Step 1: Make mistake $\to$ reward $r_1 = -2$ (penalty)
+    \item Step 2: Realize and backtrack $\to$ reward $r_2 = -1$ (small penalty)
+    \item Step 3: Fix and complete $\to$ reward $r_3 = +8$ (good!)
+    \item Total: $-2 + (-1) + 8 = 5$
+\end{itemize}
+
+\textbf{Path C} (10\% likely): Give up or produce wrong answer.
+\begin{itemize}[nosep]
+    \item Step 1: Incomplete response $\to$ reward $r_1 = -5$ (bad!)
+    \item Total: $-5$
+\end{itemize}
+
+\textbf{Computing the value $V^\pi(s)$:}
+
+\begin{align*}
+V^\pi(s) &= P(\text{Path A}) \times \text{Reward}_A + P(\text{Path B}) \times \text{Reward}_B + P(\text{Path C}) \times \text{Reward}_C \\
+&= 0.6 \times 10 + 0.3 \times 5 + 0.1 \times (-5) \\
+&= 6 + 1.5 - 0.5 = 7
+\end{align*}
+
+\begin{tipbox}
+Value = 7. This state is pretty good! On average, following our policy from here will get us +7 reward. High value state means keep doing what we are doing; low value state means try something different.
+\end{tipbox}
+
+\paragraph{Adding the discount factor}
+
+In the example above, we treated all rewards equally regardless of when they arrive. But in practice, rewards that arrive sooner are worth slightly more than rewards that arrive later. That is what the discount factor captures.
+
+\textbf{With discount factor $\gamma = 0.99$:}
+
+If rewards are spread over time:
+\begin{align*}
+V^\pi(s) &= r_0 + \gamma r_1 + \gamma^2 r_2 + \gamma^3 r_3 + \cdots \\
+&= 0 + 0.99 \times 0 + 0.99^2 \times 10 = 0.98 \times 10 = 9.8
+\end{align*}
+
+The discount factor slightly reduces the value of future rewards, but with $\gamma = 0.99$, the effect is small.
+
+\subsection{The Goal of RL}
+
+\begin{infobox}
+\textbf{What Reinforcement Learning Tries To Do}
+
+\begin{center}
+\begin{tabular}{p{0.43\textwidth}p{0.43\textwidth}}
+\toprule
+\textbf{Formal Math} & \textbf{What It Really Means} \\
+\midrule
+$\pi^* = \arg\max_\pi \mathbb{E}_{\tau \sim \pi}\!\left[\sum_{t=0}^T r_t\right]$ & Find the best strategy $\pi^*$ that maximizes average total reward \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Symbol Guide:}
+
+\begin{center}
+\begin{tabular}{p{0.35\textwidth}p{0.55\textwidth}}
+\toprule
+\textbf{Symbol} & \textbf{Meaning} \\
+\midrule
+$\pi^*$ (pi-star) & The optimal (best possible) policy \\
+$\arg\max_\pi$ & ``Find the $\pi$ that maximizes\ldots'': searching over all possible strategies \\
+$\mathbb{E}[\cdot]$ & Average/expected value over many tries (because of randomness) \\
+$\tau \sim \pi$ & A trajectory (complete episode) generated by following policy $\pi$ \\
+$\sum_{t=0}^T r_t$ & Total reward collected (sum from start $t=0$ to end $T$) \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{infobox}
+
+\textbf{In simple terms with an example:}
+
+\textbf{Goal:} Find the decision-making strategy that gets the highest average score.
+
+\textbf{The search process (simplified):}
+
+\textbf{Strategy 1:} Always pick the most likely word. Try 100 prompts. Average reward: +5.2.
+
+\textbf{Strategy 2:} Sometimes explore unusual words. Try 100 prompts. Average reward: +6.8 (better!).
+
+\textbf{Strategy 3:} Carefully balance common and creative words. Try 100 prompts. Average reward: +8.1 (even better!).
+
+Then we keep the best, make variations, test them, and continue to improve. After millions of iterations, we converge to the best strategy $\pi^*$ and cannot improve further.
+
+\paragraph{Concrete language model example}
+
+\textbf{Prompt:} ``Explain machine learning''
+
+\textbf{Bad strategy} (low reward):
+\begin{quote}
+``Machine learning is when computers use algorithms to learn from data and make predictions or decisions without being explicitly programmed\ldots'' [continues with jargon]
+\end{quote}
+Average reward: +3 (too technical, not helpful for beginners).
+
+\textbf{Good strategy} (high reward):
+\begin{quote}
+``Think of machine learning as teaching a child to recognize animals. You show them many pictures and say `that is a dog, that is a cat.' Eventually, they learn the patterns and can identify animals that they have never seen before. Computers do something similar with data!''
+\end{quote}
+Average reward: +9 (clear, accessible, helpful!).
+
+\begin{infobox}
+\textbf{The magic of RL:} Through millions of trials, the model automatically discovers that clear explanations lead to high reward, using analogies leads to high reward, too much jargon leads to low reward, and ignoring the user leads to low reward. Nobody explicitly programmed these preferences. The model learned them from feedback!
+\end{infobox}
+
+\section{The Road Ahead}
+
+You now have the complete vocabulary of reinforcement learning: agents that follow policies, environments that return rewards, value functions that estimate future outcomes, and an optimization goal that ties it all together. Every technique in the rest of this book is built on these foundations.
+
+In the next chapter, we will set up a free coding environment (Chapter 4) so that you can start running experiments hands-on. Then, in Chapter 5, we will take our first concrete step toward alignment: supervised fine-tuning, where we teach the model good behavior by showing it curated examples before any RL begins.
+
+As we move deeper into the book, you will see these RL fundamentals appear again and again. In Chapter 6, we will meet PPO, an algorithm that uses the policy, value function, and reward signal together in a carefully choreographed training loop. In Chapter 10, we will encounter GRPO, a newer algorithm that achieves similar results while removing the need for the value function entirely. The concepts you have built here are the foundation for understanding both.
+
+\end{chapterenv}

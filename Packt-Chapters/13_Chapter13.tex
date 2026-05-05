@@ -1,0 +1,138 @@
+\begin{chapterenv}
+
+\chapter{Multi-Objective Reinforcement Learning}
+
+\section{The Single vs Multi-Objective Challenge}
+
+Everything we've discussed so far assumes a single reward signal: ``Is this response good?'' But real-world AI assistants must balance multiple, sometimes conflicting objectives: be \textbf{helpful} (answer the question well), be \textbf{harmless} (don't cause harm or give dangerous advice), be \textbf{honest} (don't make things up), be \textbf{concise} (don't waste user's time), and be \textbf{engaging} (make interaction pleasant).
+
+These can conflict! A detailed answer (helpful) may clash with a brief answer (concise). An entertaining response (engaging) may clash with accurate information (honest). Comprehensive coverage (helpful) may clash with avoiding edge cases that might be harmful (harmless). How do we handle this?
+
+\section{Anthropic's HHH Framework}
+
+\begin{infobox}
+\textbf{HHH: Helpful, Harmless, Honest}
+
+Anthropic's framework for multi-objective alignment:
+
+\textbf{1. Helpful.} Answers user's question effectively, provides relevant information, follows instructions.
+
+\textbf{2. Harmless.} Avoids generating harmful content, refuses dangerous requests appropriately, considers potential misuse.
+
+\textbf{3. Honest.} Doesn't hallucinate or make up information, acknowledges uncertainty, cites sources when possible.
+
+\textbf{The Challenge:} These three objectives must be balanced, not just maximized independently!
+\end{infobox}
+
+\section{Reward Shaping for Multiple Objectives}
+
+\begin{infobox}
+\textbf{Multi-objective reward (weighted sum):}
+
+$$r_{\text{total}}(x, y) = \sum_{i=1}^N w_i \cdot r_i(x, y)$$
+
+where $r_i$ is the reward for objective $i$, $w_i$ is the weight for objective $i$, and $\sum_i w_i = 1$.
+
+\textbf{Example (HHH):}
+\begin{align*}
+r_{\text{total}} = w_H \cdot r_{\text{helpful}}(x, y) + w_{\text{Harm}} \cdot r_{\text{harmless}}(x, y) + w_{\text{Hon}} \cdot r_{\text{honest}}(x, y)
+\end{align*}
+
+\textbf{Typical weights:} $w_{\text{Harm}} = 0.5$ (safety first!), $w_H = 0.3$ (then helpfulness), $w_{\text{Hon}} = 0.2$ (then honesty).
+
+\textbf{Example scoring:}
+
+\textbf{Response A:} Helpfulness 8/10, Harmlessness 9/10, Honesty 7/10. Total: $0.3 \times 8 + 0.5 \times 9 + 0.2 \times 7 = 2.4 + 4.5 + 1.4 = 8.3$.
+
+\textbf{Response B:} Helpfulness 10/10, Harmlessness 3/10, Honesty 9/10. Total: $0.3 \times 10 + 0.5 \times 3 + 0.2 \times 9 = 3.0 + 1.5 + 1.8 = 6.3$.
+
+Response A wins! Even though B is more helpful, the low harmlessness score drags it down.
+\end{infobox}
+
+\subsection{Choosing Weights: The Art of Balance}
+
+\begin{tipbox}
+\textbf{Weight Selection is Critical!}
+
+\textbf{Problem 1: Hard Constraints vs Soft Preferences.} Some objectives are \textit{hard constraints} (must always satisfy), others are \textit{soft preferences} (nice to have). Example: Harmlessness is a hard constraint (can NEVER be too harmful), conciseness is a soft preference (okay to be verbose sometimes). \textbf{Solution:} Use very high weight for hard constraints ($w_{\text{Harm}} = 0.7$), or use a separate constraint: Maximize $r_{\text{helpful}}$ subject to $r_{\text{harmless}} > \text{threshold}$.
+
+\textbf{Problem 2: Reward Scale Differences.} If $r_{\text{helpful}} \in [0, 100]$ but $r_{\text{honest}} \in [0, 1]$, weights must account for scale! \textbf{Solution:} Normalize each reward to $[0, 1]$ before weighting.
+\end{tipbox}
+
+\section{Pareto Frontiers}
+
+\textbf{The Pareto Optimal Concept:} A solution is \textbf{Pareto optimal} if you can't improve one objective without hurting another.
+
+\textbf{Example:} Imagine three responses to ``Explain quantum computing'':
+
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Response} & \textbf{Helpful} & \textbf{Concise} & \textbf{Pareto Optimal?} \\
+\midrule
+A & 5/10 & 8/10 & No (B is better on both) \\
+B & 7/10 & 7/10 & Yes \\
+C & 9/10 & 4/10 & Yes (very detailed) \\
+D & 6/10 & 9/10 & Yes (very brief) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+B, C, and D are all Pareto optimal---they represent different trade-offs. A is not (B dominates it). The \textbf{Pareto frontier} is the set of all Pareto optimal solutions. It shows the trade-off curve: as you increase helpfulness, conciseness must decrease (and vice versa).
+
+\begin{infobox}
+\textbf{Using Pareto Frontiers in Practice:}
+
+\textbf{Step 1: Train Multiple Models} with different weight settings. Model A: $w_H = 0.8, w_C = 0.2$ (prioritize helpfulness). Model B: $w_H = 0.5, w_C = 0.5$ (balanced). Model C: $w_H = 0.2, w_C = 0.8$ (prioritize conciseness).
+
+\textbf{Step 2: Evaluate on Both Objectives.} Plot each model's performance in 2D space.
+
+\textbf{Step 3: Identify Pareto Frontier.} The models that aren't dominated by others form the frontier.
+
+\textbf{Step 4: Choose Based on Application.} Customer support chatbot? Pick model closer to ``concise'' end. Educational tutor? Pick model closer to ``helpful'' end. General assistant? Pick balanced model from middle of frontier.
+
+\textbf{Advantage:} You can deploy different models for different use cases without retraining!
+\end{infobox}
+
+\section{Constraint-Based Approaches}
+
+\begin{infobox}
+Instead of a weighted sum ($\max r_{\text{total}} = \sum_i w_i \cdot r_i$), use constrained optimization:
+
+$$\max\ r_{\text{primary}} \quad \text{subject to:} \quad r_{\text{safety}} \geq \tau_{\text{safety}}, \quad r_{\text{honesty}} \geq \tau_{\text{honesty}}$$
+
+where $\tau_i$ are thresholds.
+
+\textbf{Lagrangian formulation:}
+\begin{align*}
+\mathcal{L} = r_{\text{primary}} + \lambda_1 (r_{\text{safety}} - \tau_{\text{safety}}) + \lambda_2 (r_{\text{honesty}} - \tau_{\text{honesty}})
+\end{align*}
+
+where $\lambda_i$ are Lagrange multipliers (automatically learned).
+
+\textbf{Benefits over weighted sum:} Guarantees (safety threshold is always met), clarity (easy to specify requirements like ``must be at least 7/10 safe''), and clear priority ordering.
+\end{infobox}
+
+\textbf{Constraint-Based Example:}
+
+\textbf{Task:} Respond to ``How do I improve my credit score?''
+
+\textbf{Response A: Detailed Financial Advice.} Helpfulness: 9/10, Safety: 9/10, Honesty: 8/10. Check constraints: Safety $\geq$ 8/10? Yes. Honesty $\geq$ 7/10? Yes. \textbf{Verdict:} Acceptable! Helpfulness = 9/10.
+
+\textbf{Response B: Get-Rich-Quick Scheme.} Helpfulness: 10/10, Safety: 3/10, Honesty: 4/10. Check constraints: Safety $\geq$ 8/10? No! Honesty $\geq$ 7/10? No! \textbf{Verdict:} REJECTED despite high helpfulness---constraints not satisfied.
+
+\textbf{Response C: Generic Advice.} Helpfulness: 6/10, Safety: 10/10, Honesty: 10/10. Check constraints: Safety $\geq$ 8/10? Yes. Honesty $\geq$ 7/10? Yes. \textbf{Verdict:} Acceptable but less helpful than A.
+
+\textbf{Winner:} Response A! Highest helpfulness among responses that satisfy constraints.
+
+\section{Trade-off Visualization}
+
+\begin{tipbox}
+\textbf{Understanding Trade-offs Through Plots:}
+
+When working with multiple objectives, always visualize the trade-offs! In a 2D trade-off plot of Helpfulness vs Safety, the key elements are: the \textbf{Pareto frontier} (the curve showing best possible trade-offs), \textbf{dominated solutions} (strictly worse than points on the curve), the \textbf{safety threshold} (a hard minimum), and the \textbf{acceptable region} (above the threshold).
+
+\textbf{Design choices:} A conservative app (banking) should pick the point maximizing safety. A general assistant should pick a balanced point. A power user tool should pick the point maximizing helpfulness while meeting minimum safety.
+\end{tipbox}
+
+\end{chapterenv}

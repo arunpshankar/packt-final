@@ -1,0 +1,143 @@
+\begin{chapterenv}
+
+\chapter{Test-Time Compute: A New Scaling Paradigm}
+
+\section{Beyond Training: Scaling at Inference}
+
+\textbf{Traditional scaling:} Bigger models + More training data = Better performance.
+
+\textbf{Problem:} This is expensive and slow. Training a frontier model costs millions of dollars!
+
+\textbf{New idea:} What if we could trade \textit{inference time} for accuracy?
+
+\textbf{Test-time compute scaling} uses the same model but lets it ``think'' more at inference time---generate multiple solutions and pick the best one.
+
+\textbf{Advantage:} You can adjust quality vs speed on a per-query basis! Simple question: 1 attempt (fast). Important question: 64 attempts (accurate).
+
+\subsection{Best-of-N Sampling}
+
+\begin{infobox}
+\textbf{The Probability of Success}
+
+\begin{center}
+\begin{tabular}{p{0.43\textwidth}p{0.43\textwidth}}
+\toprule
+\textbf{Formal Math} & \textbf{What It Really Means} \\
+\midrule
+$P(\text{at least one correct}) = 1 - (1-p)^N$ & Probability of success with $N$ attempts \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Symbol Guide and WHY this formula works:}
+
+\begin{center}
+\begin{tabular}{p{0.3\textwidth}p{0.6\textwidth}}
+\toprule
+\textbf{Symbol} & \textbf{Meaning} \\
+\midrule
+$p$ & Base accuracy (probability single attempt succeeds) \\
+$N$ & Number of independent attempts \\
+$(1-p)$ & Probability of failure for single attempt \\
+$(1-p)^N$ & Probability ALL $N$ attempts fail (multiply independent failures) \\
+$1 - (\cdot)$ & Flip to get probability at least one succeeds \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Why multiply $(1-p)^N$?} If attempts are independent, probability of ALL failing = $(1-p)^N$. We want at least ONE success, which is the complement: $1 - P(\text{all fail})$.
+\end{infobox}
+
+\textbf{Let's see the math in action:}
+
+\textbf{Scenario:} Math problem, model has 60\% accuracy ($p = 0.6$).
+
+\textbf{Question:} How many attempts to get 95\%+ success rate?
+
+\paragraph{Try once ($N=1$)}
+
+\begin{align*}
+P(\text{success}) &= 1 - (1-0.6)^1 = 1 - 0.4 = 0.60 \text{ or } 60\%
+\end{align*}
+
+Not good enough! Need 95\%.
+
+\paragraph{Try twice ($N=2$)}
+
+\begin{align*}
+P(\text{success}) &= 1 - (1-0.6)^2 = 1 - 0.16 = 0.84 \text{ or } 84\%
+\end{align*}
+
+Better, but still not 95\%!
+
+\paragraph{Try 4 times ($N=4$)}
+
+\begin{align*}
+P(\text{success}) &= 1 - (1-0.6)^4 = 1 - 0.0256 = 0.9744 \text{ or } 97.4\%
+\end{align*}
+
+Success! With 4 attempts, we exceed 95\% success rate!
+
+\textbf{Full table:}
+
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+\textbf{$N$ attempts} & \textbf{Calculation} & \textbf{Success rate} & \textbf{Quality} \\
+\midrule
+1 & $1 - (0.4)^1$ & 60.0\% & Base \\
+2 & $1 - (0.4)^2$ & 84.0\% & Good \\
+4 & $1 - (0.4)^4$ & 97.4\% & Excellent \\
+8 & $1 - (0.4)^8$ & 99.9\% & Near perfect \\
+16 & $1 - (0.4)^{16}$ & 99.9999\% & Essentially perfect \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{What if base accuracy is lower? ($p = 0.4$, only 40\%)}
+
+\begin{center}
+\begin{tabular}{ccc}
+\toprule
+\textbf{$N$ attempts} & \textbf{Calculation} & \textbf{Success rate} \\
+\midrule
+1 & $1 - (0.6)^1$ & 40.0\% \\
+2 & $1 - (0.6)^2$ & 64.0\% \\
+4 & $1 - (0.6)^4$ & 87.0\% \\
+8 & $1 - (0.6)^8$ & 98.3\% \\
+16 & $1 - (0.6)^{16}$ & 99.9\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Even with mediocre 40\% base accuracy, 8 attempts gives 98.3\% success!
+
+\begin{infobox}
+\textbf{The power of multiple attempts:}
+
+\textbf{Key insight:} If attempts are independent, you can overcome low base accuracy with volume!
+
+\textbf{Trade-off:} More attempts = higher success rate, but also more computation time and higher cost (more API calls).
+
+\textbf{Practical strategy:} Simple queries use $N=1$ (save money), important queries use $N=16$ or more (ensure correctness). It's an adjustable quality-cost dial!
+\end{infobox}
+
+\textbf{Real-world example (DeepSeek-R1 on AIME 2024---very hard math competition):}
+
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Method} & \textbf{Success Rate} & \textbf{Compute Cost} & \textbf{vs Humans} \\
+\midrule
+pass@1 & 79.8\% & 1$\times$ & Much better \\
+pass@8 & 84.2\% & 8$\times$ & Much better \\
+pass@64 & 86.7\% & 64$\times$ & Much better \\
+\midrule
+Human experts & $\sim$50\% & N/A & Baseline \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Analysis:} Even with 1 attempt, the model beats humans (79.8\% vs 50\%). With 64 attempts, the model achieves 86.7\% (near-perfect). Cost scales linearly ($64\times$ attempts = $64\times$ cost), but quality scales logarithmically (diminishing returns).
+
+\end{chapterenv}

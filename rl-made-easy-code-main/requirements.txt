@@ -1,0 +1,32 @@
+# =============================================================================
+# requirements.txt — RL for Large Language Models
+#
+# Students: this file is fetched automatically by the first cell of each notebook.
+# Authors: pin versions here after validating notebooks end-to-end.
+# =============================================================================
+
+# ── Core NLP / fine-tuning stack ─────────────────────────────────────────────
+transformers>=4.40.0,<5.0.0
+datasets>=2.19.0,<4.0.0
+accelerate>=0.30.0,<2.0.0
+tokenizers>=0.19.0
+
+# ── RL trainers (SFT, PPO, DPO, GRPO, RLOO, KTO) ────────────────────────────
+trl>=0.9.0,<2.0.0
+
+# ── Efficient fine-tuning ─────────────────────────────────────────────────────
+peft>=0.11.0,<2.0.0         # LoRA / QLoRA
+bitsandbytes>=0.43.0        # 4-bit / 8-bit quantisation
+
+# ── Evaluation ────────────────────────────────────────────────────────────────
+evaluate>=0.4.0
+rouge_score
+scipy
+
+# ── Utilities ─────────────────────────────────────────────────────────────────
+sentencepiece
+huggingface_hub>=0.23.0
+einops
+
+# ── Tracking (optional — notebooks degrade gracefully without a W&B account) ──
+wandb

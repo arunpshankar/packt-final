@@ -1,0 +1,184 @@
+\begin{chapterenv}
+
+\chapter{RL at Different Training Stages}
+
+\section{The Four Stages of RL Deployment}
+
+Reinforcement learning isn't just something you add at the end! You can apply RL at different points in a model's life cycle, each with different benefits and costs:
+
+\begin{enumerate}[nosep]
+    \item \textbf{During Pretraining/Continued Pretraining} --- Teaching fundamental capabilities
+    \item \textbf{During Fine-tuning} --- Aligning with human preferences
+    \item \textbf{During Inference} --- Spending extra compute per query
+    \item \textbf{Continuous/Online Learning} --- Adapting from production traffic
+\end{enumerate}
+
+Think of these like different times to teach a skill: Pretraining RL is teaching a child foundational problem-solving, fine-tuning RL is teaching specific preferences (be polite, be concise), inference RL is taking time to ``think'' before answering, and online RL is learning from every conversation you have.
+
+\section{Stage A: RL During Pretraining}
+
+\subsection{The DeepSeek-R1 Approach}
+
+\begin{infobox}
+\textbf{Why Apply RL During Pretraining?}
+
+Traditional view: Pretraining = next-token prediction on massive text corpora. Just learn to predict, nothing fancy. DeepSeek's insight: Why not teach the model to \textit{reason} during pretraining itself?
+
+\textbf{Benefits:} Reasoning becomes a fundamental capability, not an afterthought. Model discovers strategies naturally (chain-of-thought, self-verification). No need for expensive human-annotated reasoning traces. Better scaling: more compute leads to better reasoning.
+
+\textbf{Costs:} 2--4$\times$ more expensive than standard pretraining, requires careful reward design, and risks reward hacking if not careful.
+\end{infobox}
+
+\subsection{Curriculum Learning: Easy to Hard}
+
+You wouldn't teach calculus to a kindergartener! You start with counting, then addition, then multiplication, and eventually work up to derivatives. RL during pretraining works the same way:
+
+\textbf{Stage 1: Easy problems (arithmetic).} ``What is 5 + 7?'' Clear right/wrong answers, fast feedback, builds confidence (high reward signals).
+
+\textbf{Stage 2: Medium problems (multi-step math).} ``If John has 5 apples and buys 3 more, then gives 2 away, how many does he have?'' Requires planning. Model learns to break down problems.
+
+\textbf{Stage 3: Hard problems (competition math).} ``Prove that $\sqrt{2}$ is irrational.'' Requires sophisticated reasoning. Only works if earlier stages succeeded.
+
+This curriculum is crucial! Skip easy problems and the model never learns basic reasoning, then fails on everything.
+
+\subsection{Computational Cost Analysis}
+
+\textbf{Standard Pretraining:} Generate 1 token, predict next token, compute loss. Cost per example: $C_{\text{forward}}$ (one forward pass). Tokens processed: $\sim$10--100T tokens. Total cost: $C_{\text{standard}} = 10\text{T} \times C_{\text{forward}}$.
+
+\textbf{RL-Enhanced Pretraining (DeepSeek approach):} Generate complete response (forward pass): $C_{\text{forward}}$. Evaluate reward (might need verification): $C_{\text{reward}}$. Compute policy gradient and update: $C_{\text{backward}}$. Generate multiple samples per problem: $\times G$ (group size, typically 4--8).
+
+Cost per example: $G \times (C_{\text{forward}} + C_{\text{reward}} + C_{\text{backward}})$.
+
+$$\text{Cost multiplier} = \frac{G \times (C_{\text{forward}} + C_{\text{reward}} + C_{\text{backward}})}{C_{\text{forward}}} \approx 2\text{--}4\times$$
+
+\begin{tipbox}
+Is it worth it? 3$\times$ more expensive to train, but the resulting model has emergent reasoning abilities, saves millions on human annotation, and discovers strategies humans wouldn't have taught. For reasoning-heavy applications, absolutely worth it!
+\end{tipbox}
+
+\section{Stage B: RL During Fine-tuning (RLHF)}
+
+This is the most common use of RL, and what we covered extensively in earlier chapters. The standard RLHF pipeline starts with a pretrained model, does supervised fine-tuning (SFT) on high-quality examples, trains a reward model on human preferences, then runs PPO or DPO to optimize the policy.
+
+\textbf{Key difference from pretraining RL:} Pretraining RL teaches \textit{capabilities} (how to reason). Fine-tuning RL teaches \textit{preferences} (what humans like). Pretraining RL makes the model smarter; fine-tuning RL makes it more helpful.
+
+\subsection{Online vs Offline RL}
+
+\begin{infobox}
+\textbf{Offline RL} uses a fixed dataset $\mathcal{D} = \{(x_i, y_i, r_i)\}$. The policy $\pi_\theta$ learns from $\mathcal{D}$ with no new data generation during training. Like learning to cook by reading a fixed cookbook---you study the recipes but never actually cook. \textbf{Pros:} Safe, cheap, reproducible. \textbf{Cons:} Limited by cookbook quality.
+
+\textbf{Online RL} has the policy $\pi_\theta$ generate new samples, which are evaluated with reward $r(x,y)$. The dataset grows: $\mathcal{D}_t \rightarrow \mathcal{D}_{t+1}$. Like learning to cook by actually cooking---you try recipes, taste results, learn from mistakes, try new variations. \textbf{Pros:} Discovers novel strategies, adapts to changing preferences. \textbf{Cons:} Expensive, risky.
+
+\textbf{On-policy} (like PPO): Use samples from $\pi_\theta$ to update $\pi_\theta$.
+
+\textbf{Off-policy} (like DQN): Use samples from old $\pi_{\text{old}}$ to update $\pi_\theta$.
+
+\textbf{Most practical systems} are hybrid: start offline (safe learning), then carefully add online data.
+\end{infobox}
+
+\subsection{Data Distribution Shift}
+
+\begin{infobox}
+\textbf{The Online RL Challenge:}
+
+As your policy improves, the data distribution changes. At iteration 1, the policy is mediocre, generates mostly poor responses, and the dataset has $\sim$30\% good examples. By iteration 5, the policy is better, generates mostly good responses, and the dataset is now $\sim$80\% good examples.
+
+\textbf{The Problem:} The reward model was trained on the \textit{original} distribution (30\% good)! It might not accurately score the \textit{new} distribution (80\% good).
+
+\textbf{Symptoms:} Reward model assigns similar scores to everything (saturation), policy stops improving (no learning signal), or worse: reward hacking (exploiting reward model mistakes).
+
+\textbf{Solutions:} Retrain reward model periodically on new data, use multiple reward models (ensemble), strong KL penalty to prevent policy drift, and conservative updates (small learning rates).
+\end{infobox}
+
+\section{Stage C: RL During Inference (Test-Time Compute)}
+
+All the RL we've discussed happens during \textit{training}. But what if we use RL-like ideas \textit{during inference} for each query? This is what ``test-time compute'' means: spending extra computation when answering to improve quality.
+
+\textbf{Three flavors:}
+\begin{enumerate}[nosep]
+    \item \textbf{Generate multiple answers, pick best} (best-of-N sampling)
+    \item \textbf{Self-correction loops} (generate $\to$ critique $\to$ revise)
+    \item \textbf{Tree search} (explore multiple reasoning paths)
+\end{enumerate}
+
+We covered best-of-N in depth earlier. Let's explore the other two!
+
+\subsection{Self-Correction Loops}
+
+\begin{infobox}
+\textbf{The Self-Correction Pattern:}
+
+\begin{enumerate}[nosep]
+    \item \textbf{Generate Initial Response:} $\text{response} \leftarrow \text{model.generate(prompt)}$
+    \item \textbf{Iterative Refinement Loop} (repeat up to 3 times):
+    \begin{itemize}[nosep]
+        \item[(a)] \textbf{Critique:} Ask model to review current response
+        \item[(b)] \textbf{Check:} If critique says ``no errors'' $\rightarrow$ stop and return
+        \item[(c)] \textbf{Revise:} Generate improved version based on critique
+    \end{itemize}
+    \item \textbf{Return} final refined response
+\end{enumerate}
+
+\textbf{When this works:} Model is good at \textit{verification} but sometimes makes mistakes in generation, problems where checking is easier than solving, high-stakes applications worth the extra compute.
+
+\textbf{When this fails:} Model's critique ability is poor, model gets stuck in loops (fixes one thing, breaks another), hallucinations in critique (invents nonexistent errors).
+\end{infobox}
+
+\subsection{Tree Search: Beam Search and MCTS}
+
+\textbf{Beam Search:} Imagine you're navigating a maze, but at each intersection you can clone yourself and try multiple paths simultaneously. You keep the $K$ most promising clones and discard the rest.
+
+In LLM generation: at each token position, consider top $K$ possibilities, score each partial sequence (with reward model or value function), keep top $K$ sequences and discard others, continue until all sequences finish, return highest-scoring complete sequence. Cost: $K \times$ normal inference cost. Benefit: can escape local minima (early mistakes).
+
+\textbf{Monte Carlo Tree Search (MCTS):} Like beam search, but smarter! Instead of keeping $K$ parallel paths, you: (1) \textbf{Selection}---pick most promising partial path to expand, (2) \textbf{Expansion}---try possible next steps, (3) \textbf{Simulation}---complete the path (rollout), (4) \textbf{Backpropagation}---update value estimates for all ancestors. This is what AlphaGo uses, and it's increasingly used for LLM reasoning tasks.
+
+\textbf{MCTS Example: Math Problem}
+
+\textbf{Problem:} ``Solve: $2x + 5 = 13$''
+
+\textbf{Possible first steps:} A: ``Subtract 5 from both sides,'' B: ``Divide both sides by 2,'' C: ``Add 5 to both sides.''
+
+\textbf{Round 1: Try each once.} Try A $\to$ ``$2x = 8$'' $\to$ ``$x = 4$'' (correct, reward: +1). Try B $\to$ ``$x + 2.5 = 6.5$'' $\to$ ``$x = 4$'' (correct but more steps, reward: +1). Try C $\to$ ``$2x + 10 = 18$'' $\to$ wrong path (reward: 0).
+
+Update values: Value(A) = 1.0 (best!), Value(B) = 0.8 (correct but inefficient), Value(C) = 0.0 (leads to error).
+
+\textbf{Round 2: Focus on promising branches.} Since A has highest value, explore more variations---both lead to correct answers. Value(A) increases to 1.0 (very confident).
+
+\textbf{Final decision:} Pick path A (highest value), return best completion found. MCTS allocates compute intelligently---spend more time exploring promising paths!
+
+\section{Stage D: Continuous/Online RL from Production}
+
+\begin{tipbox}
+The ultimate goal: your deployed AI system \textit{continuously learns} from every user interaction! Every conversation makes it slightly better. The reality: this is extremely difficult.
+\end{tipbox}
+
+\subsection{Challenges in Production RL}
+
+\begin{infobox}
+\textbf{Why Production RL Is Hard:}
+
+\textbf{1. Exploration vs Exploitation.} Exploitation always gives the best-known answer (users happy now). Exploration tries new strategies (might be better, might annoy users). In production, exploration can upset users! \textbf{Solution:} Careful exploration (small percentage of traffic, only low-stakes queries).
+
+\textbf{2. Reward Signal Delay.} User feedback might come minutes/hours/days later! How do you attribute success/failure? \textbf{Solution:} Credit assignment algorithms, session-level rewards.
+
+\textbf{3. Reward Hacking at Scale.} With millions of updates per day, model might learn to give popular answers (not correct ones), optimize for clicks (not helpfulness), or find reward model bugs. \textbf{Solution:} Multiple reward models, human oversight, safety constraints.
+
+\textbf{4. Distribution Shift.} Today's users might be different from tomorrow's! \textbf{Solution:} Adaptive learning rates, forgetting mechanisms, diverse data collection.
+\end{infobox}
+
+\subsection{Safeguards and Best Practices}
+
+\begin{infobox}
+\textbf{How Companies Actually Do Production RL:}
+
+\textbf{1. Staged Rollout.} Test on internal users first (employees), then 1\% of real users (canary deployment), gradually increase to 10\%, 50\%, 100\%. Monitor metrics at each stage. Rollback immediately if issues.
+
+\textbf{2. Dual Model System.} A \textbf{production model} serves most users (stable). An \textbf{experimental model} learns from new data, tested on small percentage. Only promote experimental to production if clearly better.
+
+\textbf{3. Offline Evaluation First.} Collect production data (queries + responses + feedback), train updated model offline, evaluate on held-out test set, simulate counterfactuals. Only deploy if offline metrics improve.
+
+\textbf{4. Human-in-the-Loop.} Random sample of updates reviewed by humans, anomaly detection flags suspicious updates, red team testing before each deployment.
+
+\textbf{5. Conservative Updates.} Strong KL constraint (stay close to base model), small learning rates (slow, steady improvement), frequent snapshots (can rollback anytime).
+\end{infobox}
+
+\end{chapterenv}

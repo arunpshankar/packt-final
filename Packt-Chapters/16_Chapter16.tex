@@ -1,0 +1,201 @@
+\begin{chapterenv}
+
+\chapter{RL for Specific Domains}
+
+\section{Domain-Specific Rewards: The Key to Specialization}
+
+While general RLHF uses human preferences, domain-specific RL can leverage \textbf{automated verification}, which is often more reliable and scalable than human feedback!
+
+The pattern: (1) Identify domain with objective correctness metric, (2) use automated verifier as reward signal, (3) apply RL to optimize for verified correctness, (4) result: superhuman performance in narrow domain.
+
+This approach has been extraordinarily successful for code generation (execution-based rewards), mathematics (formal proof verification), tool use (API success/failure), and multi-turn dialogue (conversation quality metrics).
+
+\section{Code: Execution Feedback as Reward}
+
+\begin{infobox}
+\textbf{Why Code Generation is Perfect for RL:}
+
+Unlike creative writing or conversation, code has an \textit{objective measure of correctness}: does it run? Does it pass tests? This gives us a perfect reward signal: pass all tests $\to$ high reward (+10), pass some tests $\to$ partial reward (+1 to +5), syntax error $\to$ low reward ($-2$), runtime error $\to$ negative reward ($-5$), pass no tests $\to$ very negative reward ($-10$). No human labeling needed! The Python interpreter tells us if code works.
+\end{infobox}
+
+\begin{infobox}
+\textbf{Formal Reward Function for Code:}
+
+For a code generation task with test suite $\mathcal{T} = \{t_1, \ldots, t_n\}$:
+
+\begin{align*}
+r_{\text{code}}(x, y) = \sum_{i=1}^n \mathbb{1}[\text{test}_i \text{ passes}] + 0.5 \cdot \mathbb{1}[\text{no lint errors}] + 0.3 \cdot \mathbb{1}[\text{has docstring}] + 0.2 \cdot \mathbb{1}[\text{efficient execution}]
+\end{align*}
+
+\textbf{Evaluation Process:} Model generates code solution, execute with all test inputs, count passing tests, check for bonus conditions (clean style, documentation, efficiency), sum all points for total reward.
+
+\textbf{Concrete Example:} Problem: ``Write function to reverse a string.'' Generated solution uses Python slicing \texttt{s[::-1]}, has docstring, passes linter, passes all 3 tests. Reward: $3 + 0.5 + 0.3 + 0.2 = 4.0$.
+\end{infobox}
+
+\subsection{Training Loop for Code Generation}
+
+\begin{infobox}
+\textbf{Practical RL Training for Code Generation:}
+
+\textbf{Algorithm:} For each training iteration, sample $n = 1000$ programming problems. For each problem: (a) generate a group of $k = 4$ code solutions, (b) execute each with test cases and compute reward (base reward from tests passed, bonuses for style/docs, penalty of $-5$ for syntax/runtime errors), (c) calculate advantages GRPO-style (each solution's reward minus group average), (d) update policy only on solutions better than group average.
+
+\textbf{Typical Training Results:}
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Iteration} & \textbf{pass@1} & \textbf{pass@10} \\
+\midrule
+0 (Base model) & 35\% & 58\% \\
+1 & 42\% & 65\% \\
+2 & 51\% & 73\% \\
+3 & 59\% & 79\% \\
+5 & 68\% & 85\% \\
+10 & 75\% & 90\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+After 10 iterations of RL training, the model more than \textbf{doubles} its success rate (35\% $\to$ 75\%)!
+\end{infobox}
+
+\section{Math: Formal Verifiers as Reward}
+
+\textbf{Two Types of Math Verification:}
+
+\textbf{1. Numerical Verification (Easier).} For arithmetic and numerical problems: model generates numerical answer, compare to ground truth, binary reward (correct = +1, incorrect = 0).
+
+\textbf{2. Formal Proof Verification (Harder).} For proofs and formal mathematics: model generates proof in formal language (Lean, Coq, Isabelle), proof checker verifies logical validity, reward based on proof correctness. This is particularly exciting because it enables models to do \textit{real mathematics}, not just arithmetic!
+
+\subsection{Formal Mathematics with Lean}
+
+In July 2024, Google DeepMind's AlphaProof (using RL with Lean theorem prover) solved 4 out of 6 problems from the International Mathematical Olympiad, earning a silver medal performance! The model generates candidate proofs, the Lean verifier checks validity, valid proofs earn high reward, and RL optimizes the policy to generate valid proofs. This was the first time AI reached medal-level performance on IMO---the key was using \textit{formal verification} as the reward signal, completely objective with no human judgment needed.
+
+\begin{infobox}
+\textbf{Formal Verification Reward:}
+
+For theorem $\theta$ and proof $\pi$:
+$$r_{\text{proof}}(\theta, \pi) = \begin{cases} 
++10 & \text{if } \text{Verify}(\theta, \pi) = \text{True} \\
+0 & \text{otherwise}
+\end{cases}$$
+
+\textbf{Partial Credit Variant:} For proof with $n$ steps: $r_{\text{proof}}(\theta, \pi) = \sum_{i=1}^n \mathbb{1}[\text{step}_i \text{ is valid}]$. This rewards partially correct proofs, providing richer learning signal during training.
+
+\textbf{Verification Process:} State theorem in formal language, model generates proof (sequence of logical steps), automated proof checker validates each step (Does this follow from previous steps? Are inference rules correctly applied? Does the conclusion match the goal?). If all steps valid $\to$ proof accepted $\to$ high reward. If any step invalid $\to$ proof rejected $\to$ no reward.
+\end{infobox}
+
+\section{Tool Use: API Success as Reward}
+
+\begin{infobox}
+\textbf{Tool-Using AI:}
+
+Modern AI systems don't just generate text---they use tools: call APIs (weather, search, calculator), execute code (Python interpreter), query databases (SQL), control applications (browser, email).
+
+Each tool interaction gives immediate feedback: API call succeeds $\to$ good reward, API call fails $\to$ bad reward, result solves user problem $\to$ bonus reward. This enables models to learn effective tool use through RL!
+\end{infobox}
+
+\textbf{Tool Use RL Example:}
+
+\textbf{User Query:} ``What's the weather like in Tokyo right now?''
+
+\paragraph{Attempt 1 (Novice Model):} Calls weather API with plain text string ``Tokyo weather now.'' Result: ERROR---invalid parameter format. Reward: $-5$.
+
+\paragraph{Attempt 2 (Learning):} Calls weather API with structured parameters: \{city: ``Tokyo'', country: ``Japan''\}. Result: success, returns temp 22, condition ``Sunny,'' humidity 65. Generated response: ``The temperature in Tokyo is 22C with sunny skies.'' Total reward: $+8$.
+
+\paragraph{Attempt 3 (Expert Model):} Calls weather API with comprehensive parameters: \{city: ``Tokyo'', country: ``JP'', units: ``metric''\}. Result: success with full data. Generated response: ``The current weather in Tokyo is 22C and sunny, with 65\% humidity and light winds at 3.5 m/s.'' Total reward: $+10$.
+
+Through RL training, the model learns to format API parameters correctly, select appropriate tools, present results comprehensively, and handle errors gracefully.
+
+\subsection{Multi-Tool Orchestration}
+
+\begin{infobox}
+\textbf{Complex Tool Use: Chaining Multiple Tools}
+
+Real tasks often require multiple tools in sequence. Example: ``Book me a flight to Paris next month'' requires Calendar API (check availability), Flight search API (find flights), Booking API (reserve flight), Email API (send confirmation).
+
+\textbf{RL reward structure:}
+
+\begin{center}
+\begin{tabular}{lc}
+\toprule
+\textbf{Milestone} & \textbf{Reward} \\
+\midrule
+Check calendar successfully & +1 \\
+Identify available dates & +2 \\
+Search flights for right dates & +2 \\
+Find flights in budget & +2 \\
+Successfully book & +5 \\
+Send confirmation & +1 \\
+Complete task correctly & +7 \\
+\midrule
+\textbf{Maximum total} & \textbf{+20} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Penalties:} Wrong API parameters ($-2$), skip necessary step ($-5$), book wrong dates ($-10$), exceed budget ($-15$).
+
+The model learns to plan multi-step actions, check preconditions, handle dependencies, and recover from errors.
+\end{infobox}
+
+\section{Multi-Turn Dialogue: Conversation Quality}
+
+Most RLHF focuses on single-turn interactions. But real conversations have multiple turns! The challenge: reward must consider the entire conversation, early responses affect later ones (long-term consequences), and there's a credit assignment problem (which response was good/bad?).
+
+\begin{infobox}
+\textbf{Formal Multi-Turn Reward:}
+
+For conversation $C = \{(u_1, r_1), \ldots, (u_T, r_T)\}$:
+
+Terminal reward: $R_{\text{term}}(C) = +10$ if task completed, $+5$ for partial progress, $0$ for no progress, $-5$ if task failed.
+
+Per-turn rewards: $r_t = r_{\text{quality}}(r_t) + r_{\text{progress}}(C_{1:t})$.
+
+Total reward: $R_{\text{total}}(C) = \sum_{t=1}^T \gamma^{T-t} r_t + R_{\text{term}}(C)$, where $\gamma$ (typically 0.95--0.99) is the discount factor. Earlier turns get discounted more (focus on recent quality).
+
+\textbf{In plain English:} Each turn gets a small reward for local quality and progress toward the goal. At the end, a large terminal reward if the conversation succeeded.
+\end{infobox}
+
+\textbf{Multi-Turn RL Example: Customer Support}
+
+\textbf{Scenario:} User needs help with password reset.
+
+\textbf{Conversation 1 (Poor):}
+
+\begin{center}
+\begin{tabular}{lp{7cm}c}
+\toprule
+\textbf{Turn} & \textbf{Exchange} & \textbf{Reward} \\
+\midrule
+1 & User: ``I can't log in'' / Bot: ``Have you tried Incognito mode?'' & +1 \\
+2 & User: ``That doesn't help'' / Bot: ``Clear your cookies'' & +1 \\
+3 & User: ``Still can't log in!'' / Bot: ``Try a different browser'' & 0 \\
+4 & User: ``This isn't working. Bye.'' (Task failed) & $-5$ \\
+\midrule
+& \textbf{Total reward:} & \textbf{$-3$} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Bot never diagnosed the actual problem (forgotten password)!
+
+\textbf{Conversation 2 (Good):}
+
+\begin{center}
+\begin{tabular}{lp{7cm}c}
+\toprule
+\textbf{Turn} & \textbf{Exchange} & \textbf{Reward} \\
+\midrule
+1 & User: ``I can't log in'' / Bot: ``Are you getting an error message?'' & +2 \\
+2 & User: ``It says `incorrect password'\,'' / Bot: ``Let me help reset your password\ldots'' & +3 \\
+3 & User: ``Got the reset email, thanks!'' / Bot: ``Great! Let me know if you need anything else.'' (Task completed) & +12 \\
+\midrule
+& \textbf{Total reward:} & \textbf{+17} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{What the model learns:} Diagnostic questions early lead to higher terminal reward. Random suggestions without diagnosis yield low reward. Quick resolution earns bonus reward. User satisfaction signals (``thanks!'') provide positive signal.
+
+\end{chapterenv}

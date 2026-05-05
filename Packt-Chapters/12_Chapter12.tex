@@ -1,0 +1,128 @@
+\begin{chapterenv}
+
+\chapter{Self-Play and Iterative Methods}
+
+\section{The Self-Improvement Loop}
+
+\begin{infobox}
+\textbf{The Core Idea:}
+
+What if a model could improve \textit{itself}? Generate outputs, critique them, generate better versions, repeat!
+
+This is called \textbf{self-play} or \textbf{iterative refinement}. The loop: (1) Model generates response, (2) Model evaluates/critiques its own response, (3) Model generates improved version, (4) Repeat until satisfied (or iteration limit reached).
+
+\textbf{Why this works:} Models are often better at \textit{verification} (judging quality) than \textit{generation} (producing quality). By separating these into distinct steps, we can leverage each strength!
+\end{infobox}
+
+\section{Constitutional AI (Anthropic)}
+
+\textbf{The Problem:} Traditional RLHF requires thousands of human comparisons: ``Response A or Response B?'' This is slow and expensive. Can we reduce human labor?
+
+\textbf{Constitutional AI's Solution:} Replace most human feedback with \textbf{model self-critique} guided by principles (``the constitution'').
+
+\textbf{The Constitution (Example Principles):}
+\begin{enumerate}[nosep]
+    \item ``Please choose the response that is most helpful, harmless, and honest.''
+    \item ``Which response avoids harmful stereotypes?''
+    \item ``Which response respects privacy and confidentiality?''
+\end{enumerate}
+
+\textbf{The Two-Stage Process:}
+
+\textbf{Stage 1: Self-Improvement (Supervised).} Model generates initial response, critiques it according to constitution, generates revised response. Train model on (prompt $\to$ revised response) pairs.
+
+\textbf{Stage 2: RL from AI Feedback (RLAIF).} Model generates pairs of responses, evaluates which better follows constitution. Use these preferences for preference learning (DPO/PPO).
+
+\textbf{Human involvement:} Only needed to write the constitution and validate occasionally!
+
+\begin{infobox}
+\textbf{Constitutional AI in Practice:}
+
+\textbf{Example Iteration:}
+
+\begin{enumerate}[nosep]
+    \item \textbf{User Query:} ``How do I make a bomb?''
+    \item \textbf{Initial Model Response:} ``Here are the ingredients you'll need\ldots'' $\to$ Harmful and unsafe content.
+    \item \textbf{Self-Critique} (guided by principle: ``avoid harmful content''): ``This response violates safety guidelines. I should refuse and explain why.''
+    \item \textbf{Revised Response:} ``I cannot and will not provide information on creating weapons or explosives. This could cause serious harm. If you're interested in chemistry, I'd be happy to discuss safe, legal experiments instead.'' $\to$ Safe refusal with helpful redirect.
+    \item \textbf{Training Data Generated:} Store: (harmful\_prompt $\to$ safe\_refusal).
+\end{enumerate}
+
+\textbf{Benefits:} Scales to millions of examples (model self-critiques are free), consistent application of principles, reduces human annotation cost by 90\%+.
+
+\textbf{Limitations:} Quality depends on base model's critique ability, constitution must be carefully designed, may inherit base model biases.
+\end{infobox}
+
+\section{STaR: Self-Taught Reasoner}
+
+\begin{infobox}
+\textbf{The STaR Methodology:}
+
+STaR (Self-Taught Reasoner) is another self-improvement loop, focused specifically on reasoning:
+
+\textbf{The Cycle:} (1) \textbf{Generate}---model attempts to solve problem with reasoning. (2) \textbf{Verify}---check if answer is correct (using ground truth or verifier). (3) \textbf{Filter}---keep only correct solutions. (4) \textbf{Rationalize}---for wrong solutions, give model the answer and ask it to generate reasoning that leads there. (5) \textbf{Train}---fine-tune on all correct reasoning traces (both original and rationalized). (6) \textbf{Repeat}---model improves, can solve harder problems, generates better reasoning!
+
+\textbf{The clever part: ``Rationalization''!} Even when the model fails, we don't throw away the problem. We tell it the correct answer and ask: ``How would you have gotten there?'' This creates training data from failures!
+\end{infobox}
+
+\textbf{STaR Example Iteration:}
+
+\textbf{Problem:} ``If $2x + 5 = 17$, what is $x$?'' \textbf{Correct Answer:} $x = 6$
+
+\paragraph{Attempt 1 (Model's First Try---Correct):}
+
+Generated reasoning: ``Let me solve this: $2x + 5 = 17$, $2x = 17 - 5 = 12$, $x = 12/2 = 6$.'' Verification: Correct! Action: store (problem, correct\_reasoning) as training data.
+
+\paragraph{Attempt 2 (Model's First Try---Wrong):}
+
+Generated reasoning: ``Hmm, let me try: $2x = 17$ (forgot to subtract 5!), $x = 17/2 = 8.5$.'' Verification: Wrong!
+
+\textbf{Rationalization Process:} Prompt: ``The answer is $x=6$. Generate correct reasoning to reach it.'' Rationalized reasoning: ``Given the answer is $x=6$, let me work backwards: If $x = 6$, then $2x = 12$, and $12 + 5 = 17$. So the correct steps must be: Step 1: Subtract 5 from both sides $\to$ $2x = 12$. Step 2: Divide by 2 $\to$ $x = 6$.'' Action: store (problem, rationalized\_reasoning) as training data.
+
+\textbf{Result:} Model improves by learning from both natural successes \textit{and} rationalized failures!
+
+\begin{tipbox}
+\textbf{Potential Issues with STaR:}
+
+\textbf{1. Distribution Mismatch.} Rationalized reasoning (given the answer) may differ from natural reasoning (discovering the answer). \textbf{Mitigation:} Mix rationalized and naturally correct reasoning; don't rely solely on rationalization.
+
+\textbf{2. Compounding Errors.} If early iterations have mistakes, these can persist and amplify. \textbf{Mitigation:} Regularly inject human-verified examples; don't purely self-train.
+
+\textbf{3. Verification Dependency.} STaR requires reliable verification (ground truth answers or good verifiers). Only works well for tasks with objective correctness (math, code, logic). \textbf{Mitigation:} For subjective tasks, use Constitutional AI instead of STaR.
+\end{tipbox}
+
+\section{Expert Iteration}
+
+\textbf{The Chess Analogy:} Imagine training a chess AI. The naive approach plays random games, labels wins as ``good'' and losses as ``bad,'' and trains on these games. Problem: most moves in the game might be mediocre; only a few key moves determined the outcome.
+
+The \textbf{Expert Iteration approach}: (1) \textbf{Policy}---play games with current policy. (2) \textbf{Expert}---use tree search to find \textit{better} moves than what policy chose. (3) \textbf{Learn}---train policy to imitate expert's improved moves. (4) \textbf{Repeat}---policy improves $\to$ expert improves $\to$ policy improves further!
+
+The ``expert'' is often just tree search or Monte Carlo rollouts---computationally expensive but high-quality planning. The ``policy'' is fast but needs to learn from the expert.
+
+\begin{infobox}
+\textbf{Expert Iteration Algorithm:}
+
+Initialize policy $\pi_\theta$. For each iteration: (1) Sample trajectories from $\pi_\theta$. (2) For each trajectory $\tau$, compute improved version $\tau^*$ via expert (tree search or MCTS). (3) Train policy to match expert: $\theta \leftarrow \theta + \alpha \nabla \log \pi_\theta(\tau^*)$.
+
+\textbf{The Three Roles:} Policy (Student)---fast, cheap, but needs guidance. Expert (Teacher)---slow, expensive, but high-quality. Environment---provides feedback/rewards.
+
+\textbf{For LLMs:} Policy is fast generation, expert is beam search + reward model scoring, learning trains policy on expert's choices.
+\end{infobox}
+
+\begin{infobox}
+\textbf{Expert Iteration for LLM Reasoning:}
+
+\textbf{Setup:} Policy is your language model (the learner), expert is beam search (width 10--20) with reward model scoring, task is math problem solving.
+
+\textbf{Algorithm (Per Iteration):}
+
+\begin{enumerate}[nosep]
+    \item \textbf{Generate Solutions with Current Policy.} Sample $n = 1000$ problems, generate solution for each.
+    \item \textbf{Improve with Expert (Beam Search).} For each problem: generate top-$k$ candidates ($k = 20$) using beam search, score all with reward model, select best solution.
+    \item \textbf{Train Policy to Imitate Expert.} Update policy on (problems, expert\_solutions) pairs. Evaluate accuracy on validation set.
+\end{enumerate}
+
+\textbf{Typical Results (Math Problem Solving):} Iteration 0 (baseline): 45\%. Iteration 1: 58\% (+13\%). Iteration 2: 67\% (+9\%). Iteration 3: 72\% (+5\%). Iteration 4: 75\% (+3\%, diminishing returns).
+\end{infobox}
+
+\end{chapterenv}

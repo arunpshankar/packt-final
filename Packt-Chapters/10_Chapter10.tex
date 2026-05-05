@@ -1,0 +1,223 @@
+\begin{chapterenv}
+
+\chapter{Modern RL Algorithms Beyond PPO/DPO}
+
+\section{The Expanding Algorithm Landscape}
+
+PPO and DPO are the workhorses of RLHF, but they're not the only options! Researchers have developed many variations, each with different trade-offs.
+
+\textbf{Why so many algorithms?} Different projects have different constraints: limited compute suggests RLOO or GRPO, lacking paired preferences suggests KTO, wanting training stability suggests IPO, and wanting efficiency suggests ORPO. Let's tour the landscape!
+
+\section{Algorithm Comparison Table}
+
+\begin{center}
+\small
+\begin{tabular}{p{0.15\textwidth}p{0.35\textwidth}p{0.35\textwidth}}
+\toprule
+\textbf{Algorithm} & \textbf{Key Innovation} & \textbf{When to Use} \\
+\midrule
+\textbf{PPO} & Clipped policy gradient, value network, multiple epochs & General-purpose, well-tested, scales well \\
+\textbf{DPO} & Direct preference optimization without reward model & Want simplicity, have paired preferences \\
+\textbf{GRPO} & Group-based baselines, no value network & Large-scale training, many GPUs available \\
+\textbf{RLOO} & Leave-one-out baselines, variance reduction & Limited compute, small-scale projects \\
+\textbf{KTO} & Works with unpaired feedback (only ``good'' or ``bad'') & Cheaper data collection, no comparisons needed \\
+\textbf{IPO} & Identity preference optimization, better regularization & Want stability, prevent reward hacking \\
+\textbf{ORPO} & Combines SFT + preference learning in one step & Maximum efficiency, fewer training stages \\
+\textbf{REINFORCE} & Simple policy gradient, foundation of all methods & Learning/teaching, understanding basics \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{GRPO: Group Relative Policy Optimization}
+
+\textit{We covered this extensively in the DeepSeek-R1 chapter! See that section for full details.}
+
+\begin{infobox}
+\textbf{Quick recap:} Generate groups of responses (typically 4--8 per prompt), use group average as baseline instead of value network. Simpler than PPO (no critic), more stable than REINFORCE. This is what DeepSeek-R1 uses!
+
+\textbf{When to choose GRPO:} Training at scale (many GPUs), want simplicity (no value network to train), can afford generating multiple samples per prompt.
+\end{infobox}
+
+\section{RLOO: REINFORCE Leave-One-Out}
+
+\begin{infobox}
+\textbf{RLOO Formal Definition:}
+
+For $N$ samples from prompt $x$: $\{y_1, \ldots, y_N\}$
+
+REINFORCE baseline: $b = \frac{1}{N}\sum_{i=1}^N r(y_i)$
+
+RLOO baseline for sample $i$: $b_{-i} = \frac{1}{N-1}\sum_{j \neq i} r(y_j)$
+
+Gradient estimate: $\nabla \mathcal{L}_i = (r(y_i) - b_{-i}) \cdot \nabla \log \pi_\theta(y_i | x)$
+
+\textbf{Key insight:} Each sample gets a baseline computed from the \textit{other} samples, not including itself!
+
+\textbf{In plain English:} When grading sample $i$, don't include it in the average! If sample $i$ is really good, including it in the average would make the average higher, making sample $i$ look less special. Your performance should be measured against \textit{the other runners}, not against an average that includes your own time!
+
+\textbf{Benefits:} Lower variance than vanilla REINFORCE, no extra neural networks needed (like PPO's critic), works with as few as $N=2$ samples.
+\end{infobox}
+
+\textbf{RLOO Example}
+
+\textbf{Prompt:} ``Write a poem about spring''
+
+\textbf{Generate 4 responses:}
+
+\begin{center}
+\begin{tabular}{clc}
+\toprule
+\textbf{\#} & \textbf{Response} & \textbf{Reward} \\
+\midrule
+1 & ``Spring is nice\ldots'' (mediocre) & 3 \\
+2 & ``Blossoms dance in gentle breeze\ldots'' (good!) & 8 \\
+3 & ``Spring spring spring\ldots'' (bad) & 1 \\
+4 & ``Flowers bloom as winter ends\ldots'' (okay) & 5 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Standard REINFORCE baseline:} $b = \frac{3 + 8 + 1 + 5}{4} = 4.25$
+
+Advantages: Sample 1: $3 - 4.25 = -1.25$, Sample 2: $8 - 4.25 = +3.75$, Sample 3: $1 - 4.25 = -3.25$, Sample 4: $5 - 4.25 = +0.75$.
+
+\textbf{RLOO baselines (leave-one-out):}
+
+For sample 1: $b_{-1} = \frac{8 + 1 + 5}{3} = 4.67$. For sample 2: $b_{-2} = \frac{3 + 1 + 5}{3} = 3.00$. For sample 3: $b_{-3} = \frac{3 + 8 + 5}{3} = 5.33$. For sample 4: $b_{-4} = \frac{3 + 8 + 1}{3} = 4.00$.
+
+RLOO advantages: Sample 1: $3 - 4.67 = -1.67$ (larger decrease!), Sample 2: $8 - 3.00 = +5.00$ (larger increase!), Sample 3: $1 - 5.33 = -4.33$ (larger decrease!), Sample 4: $5 - 4.00 = +1.00$ (larger increase).
+
+\textbf{Notice:} RLOO gives stronger signals! Sample 2 (the best one) gets a bigger boost because we're not diluting the baseline with its own high score. This leads to lower variance and faster learning!
+
+\section{KTO: Kahneman-Tversky Optimization}
+
+All the methods we've discussed so far require \textit{paired preferences}: ``Response A is better than Response B.'' But collecting paired comparisons is expensive---you need two responses for each prompt and a human annotator to compare them.
+
+What if you only have independent labels---good or bad---with no comparisons? This is 2$\times$ cheaper to collect. KTO makes this work!
+
+\begin{infobox}
+\textbf{KTO Loss:}
+
+For desirable output $y_+$:
+\begin{align*}
+\mathcal{L}_{\text{KTO}}^+ = 1 - \sigma\left( \beta \left( \log \frac{\pi_\theta(y_+ | x)}{\pi_{\text{ref}}(y_+ | x)} - \mathbb{E}_{y \sim \pi_{\text{ref}}} \left[\log \frac{\pi_\theta(y | x)}{\pi_{\text{ref}}(y | x)}\right] \right) \right)
+\end{align*}
+
+For undesirable output $y_-$:
+\begin{align*}
+\mathcal{L}_{\text{KTO}}^- = \sigma\left( \beta \left( \log \frac{\pi_\theta(y_- | x)}{\pi_{\text{ref}}(y_- | x)} - \mathbb{E}_{y \sim \pi_{\text{ref}}} \left[\log \frac{\pi_\theta(y | x)}{\pi_{\text{ref}}(y | x)}\right] \right) \right)
+\end{align*}
+
+Total loss: $\mathcal{L}_{\text{KTO}} = \mathbb{E}[\mathcal{L}_{\text{KTO}}^+] + \mathbb{E}[\mathcal{L}_{\text{KTO}}^-]$
+
+\textbf{In plain English:} For good responses, increase their probability relative to baseline (but penalize if deviation is too large). For bad responses, decrease their probability relative to baseline. Even without explicit comparisons, the reference distribution provides an implicit comparison!
+
+\textbf{Name origin:} Based on Kahneman and Tversky's prospect theory---humans judge outcomes relative to reference points, not absolute values. Same principle here!
+\end{infobox}
+
+\begin{tipbox}
+\textbf{When to Use KTO:}
+
+\textbf{Good fit:} You have upvotes/downvotes (Reddit, Twitter style), star ratings but no explicit comparisons, limited data collection budget, or want simplicity (no paired data needed).
+
+\textbf{Not ideal when:} You already have high-quality paired preferences, need very precise ranking information, or performance is critical (KTO slightly underperforms DPO/PPO with good data).
+
+\textbf{Practical tip:} Use KTO for initial training with cheap data, then fine-tune with DPO/PPO on smaller high-quality paired dataset. Best of both worlds!
+\end{tipbox}
+
+\section{IPO: Identity Preference Optimization}
+
+\begin{infobox}
+\textbf{The Problem IPO Solves:}
+
+DPO works great, but it has a weakness: \textbf{reward hacking through length}! DPO learns that longer responses tend to be preferred, so the model starts generating unnecessarily long responses to game the preference model. IPO adds a regularization term that explicitly prevents this ``identity mapping''---where the model just copies length patterns without understanding quality.
+\end{infobox}
+
+\textbf{DPO vs IPO:}
+
+DPO loss (recall):
+\begin{align*}
+\mathcal{L}_{\text{DPO}} = -\mathbb{E}\Big[ \log \sigma\Big( \beta \log \frac{\pi(y_w | x)}{\pi_{\text{ref}}(y_w | x)} - \beta \log \frac{\pi(y_l | x)}{\pi_{\text{ref}}(y_l | x)} \Big) \Big]
+\end{align*}
+
+IPO loss:
+\begin{align*}
+\mathcal{L}_{\text{IPO}} = \mathbb{E}\Big[ \Big( \log \frac{\pi(y_w | x)}{\pi_{\text{ref}}(y_w | x)} - \log \frac{\pi(y_l | x)}{\pi_{\text{ref}}(y_l | x)} - \frac{1}{\beta} \Big)^2 \Big]
+\end{align*}
+
+\textbf{Key difference:} Squared loss instead of log-sigmoid, with explicit gap term $\frac{1}{\beta}$.
+
+DPO says: ``Make $y_w$ more likely than $y_l$, as much as possible.'' IPO says: ``Make $y_w$ more likely than $y_l$, but by \textit{exactly} $\frac{1}{\beta}$ in log-space.'' The explicit target gap prevents over-optimizing on easy examples, exploiting spurious correlations (like length), and deviating too far from the reference model. Think of it as: DPO coach says ``Win by as much as possible!'' (team runs up the score unnecessarily), while IPO coach says ``Win by exactly 10 points'' (team wins efficiently).
+
+\begin{tipbox}
+IPO is more stable and less prone to reward hacking than DPO, but has slightly lower peak performance. Choose IPO over DPO when you've observed reward hacking, training stability is more important than peak performance, or you want more predictable behavior.
+\end{tipbox}
+
+\section{ORPO: Odds Ratio Preference Optimization}
+
+All methods so far have multiple stages: SFT (learn to follow instructions) then preference learning (learn what humans like). ORPO asks: Can we do \textit{both in one step}? The answer is yes---combine the SFT loss and preference loss into a single objective!
+
+\begin{infobox}
+\textbf{ORPO Loss:}
+
+$$\mathcal{L}_{\text{ORPO}} = \mathcal{L}_{\text{SFT}} + \lambda \cdot \mathcal{L}_{\text{OR}}$$
+
+SFT term: $\mathcal{L}_{\text{SFT}} = -\mathbb{E}\left[\log \pi_\theta(y_w | x)\right]$
+
+Odds ratio term:
+\begin{align*}
+\mathcal{L}_{\text{OR}} = -\mathbb{E}\Big[ \log \sigma\Big( \log \frac{\pi_\theta(y_w | x)}{1 - \pi_\theta(y_w | x)} - \log \frac{\pi_\theta(y_l | x)}{1 - \pi_\theta(y_l | x)} \Big) \Big]
+\end{align*}
+
+$\lambda$ controls relative importance (typically 0.1--1.0).
+
+\textbf{Two goals simultaneously:} (1) Learn from good examples (SFT part)---increase probability of good responses $y_w$. (2) Learn preferences (OR part)---make good responses more likely than bad ones using the odds ratio.
+
+\textbf{Benefits:} Faster (skip separate SFT stage), cheaper (one training run, not two), simpler (fewer hyperparameters). Traditional approach: learn piano scales (SFT), then learn songs (RLHF). ORPO: learn scales \textit{within the context of} songs from day one!
+\end{infobox}
+
+\begin{tipbox}
+\textbf{When to Use ORPO:}
+
+\textbf{Great choice when:} You want maximum efficiency, have both good instruction-following examples and paired preferences, are training smaller models, or have a tight compute budget.
+
+\textbf{Maybe not ideal when:} You need absolute state-of-the-art performance, want to separately tune SFT vs preference learning, or have very different data for SFT vs preferences.
+
+\textbf{Empirical results:} ORPO typically achieves 95--98\% of PPO's performance in 50\% of the training time!
+\end{tipbox}
+
+\section{REINFORCE: The Foundation}
+
+We've discussed many sophisticated algorithms, but they all build on one foundation: \textbf{REINFORCE} (aka vanilla policy gradient). It's important both historically (where policy gradient methods began) and educationally (understanding REINFORCE helps you understand everything else). It's like learning arithmetic before algebra---not what you'll use in practice, but essential for deep understanding!
+
+\begin{infobox}
+\textbf{REINFORCE:}
+
+Objective: $J(\theta) = \mathbb{E}_{y \sim \pi_\theta}[r(y)]$
+
+Gradient: $\nabla J(\theta) = \mathbb{E}_{y \sim \pi_\theta}[r(y) \cdot \nabla \log \pi_\theta(y | x)]$
+
+With baseline $b$: $\nabla J(\theta) = \mathbb{E}_{y \sim \pi_\theta}[(r(y) - b) \cdot \nabla \log \pi_\theta(y | x)]$
+
+That's it! Simple but high variance.
+
+\textbf{In plain English:} Generate response $y$ from current policy, get reward $r(y)$, if reward is good make $y$ more likely, if reward is bad make $y$ less likely, repeat. The problem is it's very noisy---if you get lucky once and generate a good response by chance, you might over-commit to it. Solution: use a baseline (subtract average reward) to reduce noise.
+
+\textbf{All other algorithms add:} Better baselines (RLOO, GRPO, PPO), preference-based rewards (DPO, IPO, KTO), and clever optimization tricks (PPO clipping).
+\end{infobox}
+
+\section{Choosing the Right Algorithm}
+
+\begin{infobox}
+\textbf{Decision Tree:}
+
+\textbf{Do you have paired preferences (A vs B)?} Yes $\to$ consider DPO, IPO, ORPO, or PPO. No $\to$ consider KTO or collect comparison data.
+
+\textbf{What's your compute budget?} High $\to$ PPO (best performance, most resource-intensive). Medium $\to$ DPO or GRPO (good balance). Low $\to$ RLOO, KTO, or ORPO (most efficient).
+
+\textbf{What's your priority?} Peak performance $\to$ PPO or DPO. Training stability $\to$ IPO or GRPO. Maximum efficiency $\to$ ORPO or RLOO. Cheap data collection $\to$ KTO. Learning/teaching $\to$ REINFORCE.
+
+\textbf{Safest bet for practitioners:} Start with DPO (simple, effective, well-documented). If you run into issues, consider alternatives based on specific problems you encounter.
+\end{infobox}
+
+\end{chapterenv}

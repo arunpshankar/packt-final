@@ -1,0 +1,151 @@
+\begin{chapterenv}
+
+\chapter{Direct Preference Optimization (DPO)}
+
+\section{The Simplification}
+
+In 2023, researchers asked: ``Do we really need all this complexity?''
+
+PPO requires four models in memory: the policy model we're training, a frozen reference model, a reward model, and a value function network. Plus the complex RL training loop.
+
+The breakthrough: There's a mathematical shortcut that lets us skip the reward model entirely!
+
+\subsection{The Mathematical Insight}
+
+\begin{infobox}
+\textbf{The DPO Reparameterization Trick}
+
+\begin{center}
+\begin{tabular}{p{0.43\textwidth}p{0.43\textwidth}}
+\toprule
+\textbf{Formal Math} & \textbf{What It Really Means} \\
+\midrule
+\multicolumn{2}{l}{\textbf{Step 1: Optimal policy in terms of reward}} \\
+\midrule
+$\pi^*(y|x) = \frac{1}{Z(x)} \pi_{\text{ref}}(y|x) \exp\!\left(\frac{r(x,y)}{\beta}\right)$ & Best policy = reference $\times$ exponential of reward \\
+\midrule
+\multicolumn{2}{l}{\textbf{Step 2: Solve for reward}} \\
+\midrule
+$r(x,y) = \beta \log \frac{\pi^*(y|x)}{\pi_{\text{ref}}(y|x)} + \beta \log Z(x)$ & Reward = $\beta$ times log of policy ratio \\
+\midrule
+\multicolumn{2}{l}{\textbf{Step 3: Substitute into Bradley-Terry}} \\
+\midrule
+$P(y_w \succ y_l) = \sigma\!\left(\beta \log \frac{\pi(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \beta \log \frac{\pi(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\right)$ & Preference in terms of policy ratios! (Partition function $Z$ cancels out!) \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{infobox}
+
+\textbf{Why is this magical? Let's compare:}
+
+\textbf{PPO (Old way):} Train reward model to learn $r(x,y)$ from preferences, generate responses using policy $\pi_\theta$, score responses through the reward model to get $r(x,y)$, then run RL update to adjust $\pi_\theta$ to maximize $r$ (with KL constraint). \textbf{Models needed:} Policy, Reference, Reward, Value = 4 models.
+
+\textbf{DPO (New way):} No reward model needed! Directly optimize policy on preferences. The ratio $\frac{\pi_\theta(y)}{\pi_{\text{ref}}(y)}$ implicitly encodes the reward. Much simpler training loop. \textbf{Models needed:} Policy, Reference = 2 models (50\% less memory!).
+
+\begin{infobox}
+\textbf{The key insight:} We don't need to explicitly model the reward function $r(x,y)$. The policy ratio $\frac{\pi_\theta(y)}{\pi_{\text{ref}}(y)}$ already encodes all the information about what makes responses good!
+
+\textbf{Intuition:} If $\pi_\theta$ makes a response more likely than $\pi_{\text{ref}}$ does, that means the response is ``good'' (high implicit reward). If $\pi_\theta$ makes it less likely, it's ``bad'' (low implicit reward). We can train $\pi_\theta$ directly on preferences!
+\end{infobox}
+
+\subsection{The DPO Loss Function}
+
+\begin{infobox}
+\textbf{Training Policy Directly on Preferences}
+
+\begin{center}
+\begin{tabular}{p{0.43\textwidth}p{0.43\textwidth}}
+\toprule
+\textbf{Formal Math} & \textbf{What It Really Means} \\
+\midrule
+$\mathcal{L}_{\text{DPO}}(\theta) = -\mathbb{E}\!\left[\log \sigma\!\left(\beta \log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \beta \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\right)\right]$ & Make winner ratio larger than loser ratio \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Breaking it apart:}
+
+\begin{center}
+\begin{tabular}{p{0.35\textwidth}p{0.55\textwidth}}
+\toprule
+\textbf{Component} & \textbf{Purpose} \\
+\midrule
+Winner term: $\beta \log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)}$ & Implicit reward for winner \\
+Loser term: $\beta \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}$ & Implicit reward for loser \\
+$\sigma(\text{winner} - \text{loser})$ & Probability winner is better \\
+$\log(\cdot)$ & Log likelihood (penalizes wrong predictions) \\
+$-$ & Minimize loss \\
+$\mathbb{E}[\cdot]$ & Average over all preference pairs \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{infobox}
+
+\textbf{Complete DPO training example:}
+
+\textbf{Preference:}
+\begin{itemize}[nosep]
+    \item \textbf{Prompt:} ``Explain photosynthesis''
+    \item \textbf{Winner ($y_w$):} ``Plants use sunlight to make food from CO$_2$ and water''
+    \item \textbf{Loser ($y_l$):} ``Photosynthesis is the biochemical process involving chloroplast thylakoids\ldots''
+\end{itemize}
+
+Winner is simpler and clearer. Let's train DPO on this preference!
+
+\paragraph{Step 1: Compute probabilities for both responses}
+
+\textbf{Winner (10 words):} New model gives each word avg probability: 0.22. Reference model gives: 0.20. Full response probability: $\pi_\theta(y_w) \approx 0.22^{10}$, $\pi_{\text{ref}}(y_w) \approx 0.20^{10}$.
+
+\textbf{Loser (12 words):} New model gives: 0.17 per word. Reference model gives: 0.19 per word. Full response: $\pi_\theta(y_l) \approx 0.17^{12}$, $\pi_{\text{ref}}(y_l) \approx 0.19^{12}$.
+
+\paragraph{Step 2: Compute log ratios}
+
+\textbf{Winner log ratio:}
+\begin{align*}
+\log \frac{\pi_\theta(y_w \,|\, x)}{\pi_{\text{ref}}(y_w \,|\, x)} &= 10 \times \log \frac{0.22}{0.20} = 10 \times 0.095 = 0.95
+\end{align*}
+
+\textbf{Loser log ratio:}
+\begin{align*}
+\log \frac{\pi_\theta(y_l \,|\, x)}{\pi_{\text{ref}}(y_l \,|\, x)} &= 12 \times \log \frac{0.17}{0.19} = 12 \times (-0.111) = -1.33
+\end{align*}
+
+\paragraph{Step 3: Compute preference logit (with $\beta = 0.1$)}
+
+\begin{align*}
+\text{logit} &= \beta \times (\text{winner ratio} - \text{loser ratio}) = 0.1 \times (0.95 - (-1.33)) = 0.1 \times 2.28 = 0.228
+\end{align*}
+
+\paragraph{Step 4: Convert to probability}
+
+\begin{align*}
+P(\text{winner} \succ \text{loser}) &= \sigma(0.228) = \frac{1}{1 + e^{-0.228}} = 0.557 \text{ or } 55.7\%
+\end{align*}
+
+The model is somewhat confident (55.7\%) that winner is better. Not great yet!
+
+\paragraph{Step 5: Compute loss}
+
+\begin{align*}
+\mathcal{L}_{\text{DPO}} &= -\log(0.557) = 0.585
+\end{align*}
+
+\paragraph{Step 6: Gradient descent updates $\pi_\theta$}
+
+The gradients will \textbf{increase} $\pi_\theta(y_w \,|\, x)$ (make winner more likely) and \textbf{decrease} $\pi_\theta(y_l \,|\, x)$ (make loser less likely).
+
+\textbf{After training on 50,000 preferences\ldots}
+
+Same preference pair now: Winner log ratio: $+2.8$. Loser log ratio: $-2.5$. Difference: $5.3$. Logit: $0.1 \times 5.3 = 0.53$. $P = \sigma(0.53) = 0.629$ (62.9\%). Loss: $-\log(0.629) = 0.464$ (much lower!).
+
+\textbf{Model learned to:} prefer simpler explanations, assign higher probability to clear accessible language, and assign lower probability to overly technical responses---all without an explicit reward model!
+
+\begin{infobox}
+\textbf{Why DPO works:}
+
+Every preference pair teaches the model: ``This style of response is better than that style.'' The policy ratios $\frac{\pi_\theta}{\pi_{\text{ref}}}$ encode implicit rewards. Training automatically makes winner ratios larger and loser ratios smaller. This is equivalent to RL, but much simpler to implement!
+
+\textbf{Result:} Same performance as PPO, but 50\% less memory and easier to train!
+\end{infobox}
+
+\end{chapterenv}

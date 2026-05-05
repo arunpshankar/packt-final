@@ -1,0 +1,533 @@
+\begin{chapterenv}
+
+\chapter{The RLHF Revolution}
+
+\section{The Three-Step Dance}
+
+In 2022, OpenAI released ChatGPT and the world changed overnight. Suddenly, AI wasn't just generating text---it was \textit{genuinely helpful}. The secret? A three-step process called RLHF (Reinforcement Learning from Human Feedback). Let's understand each step and why they all matter.
+
+\textbf{RLHF has three stages:}
+
+\textbf{Step 1: Supervised Fine-Tuning (SFT).} Take a base model (like GPT-3), train it on thousands of examples of good responses. \textbf{Result:} A model that can follow instructions (but not perfectly).
+
+\textbf{Step 2: Reward Modeling.} Show humans pairs of responses: ``Which is better?'' Collect 50,000+ comparisons. Train a ``reward model'' to predict which responses humans prefer. \textbf{Result:} An automated judge that can score any response.
+
+\textbf{Step 3: RL Optimization (PPO).} Generate thousands of responses, score them with the reward model, update the policy to generate higher-scoring responses. \textbf{Result:} A model optimized for human preferences!
+
+\begin{infobox}
+Think of training a chef:
+
+\textbf{Step 1---Culinary School (SFT):} Watch master chefs cook, practice their exact recipes, learn knife skills, temperatures, timing. \textbf{Result:} You can cook competently, but mechanically.
+
+\textbf{Step 2---Understanding Taste (Reward Model):} Serve dishes to many diners. They rate: ``This one is better than that one.'' After 1,000 ratings, you learn patterns---people like balanced flavors, fresh ingredients, proper seasoning. \textbf{Result:} You can predict what people will enjoy.
+
+\textbf{Step 3---Practice and Improve (RL):} Cook many variations. Use your taste understanding to evaluate them. Keep what works (``More garlic was great!''), discard what doesn't (``Too much salt''). \textbf{Result:} You become a master chef!
+
+The combination makes you both skilled AND attuned to what diners actually want.
+\end{infobox}
+
+\section{Step 1: Supervised Fine-Tuning (SFT)}
+
+\subsection{The Training Objective}
+
+\begin{infobox}
+\textbf{The SFT Loss Function}
+
+\begin{center}
+\begin{tabular}{p{0.43\textwidth}p{0.43\textwidth}}
+\toprule
+\textbf{Formal Math} & \textbf{What It Really Means} \\
+\midrule
+$\mathcal{L}_{\text{SFT}}(\theta) = -\mathbb{E}_{(x,y) \sim \mathcal{D}}\!\left[\sum_{t=1}^T \log \pi_\theta(y_t \,|\, x, y_{<t})\right]$ & Average surprise across all demonstration examples \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{What each part means and WHY we use it:}
+
+\begin{center}
+\begin{tabular}{p{0.35\textwidth}p{0.55\textwidth}}
+\toprule
+\textbf{Component} & \textbf{Purpose} \\
+\midrule
+$\mathcal{L}_{\text{SFT}}$ & Loss for Supervised Fine-Tuning \\
+$(x, y) \sim \mathcal{D}$ & Sample a (prompt, demonstration) pair from dataset $\mathcal{D}$ \\
+$\mathbb{E}[\cdot]$ & Average over all examples (we care about overall performance) \\
+$\sum_{t=1}^T$ & For each word position $t$ in demonstration (1 to $T$)---we train on every word \\
+$\log \pi_\theta(y_t \,|\, x, y_{<t})$ & Log probability model assigns to correct word $y_t$ given prompt and previous words \\
+$|$ symbol & Separates what we're predicting ($y_t$) from what we know ($x, y_{<t}$) \\
+$-$ (minus sign) & Flip to make it a loss (minimize = maximize probability) \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{infobox}
+
+\textbf{Complete training example with step-by-step numbers:}
+
+\textbf{Demonstration from dataset:}
+\begin{itemize}[nosep]
+    \item \textbf{Prompt ($x$):} ``Explain gravity simply''
+    \item \textbf{Good response ($y$):} ``Gravity pulls objects together''
+\end{itemize}
+
+This response has $T = 4$ words: [``Gravity'', ``pulls'', ``objects'', ``together''].
+
+\paragraph{Position $t=1$: Predict ``Gravity''}
+
+Input to model: ``Explain gravity simply.''
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Word} & \textbf{Probability} & \\
+\midrule
+``Gravity'' & 0.60 & $\leftarrow$ Correct! \\
+``The'' & 0.20 & \\
+``It'' & 0.15 & \\
+Others & 0.05 & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Loss for this word: $-\log(0.60) = 0.51$
+
+\paragraph{Position $t=2$: Predict ``pulls''}
+
+Input to model: ``Explain gravity simply. Gravity''
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Word} & \textbf{Probability} & \\
+\midrule
+``pulls'' & 0.45 & $\leftarrow$ Correct! \\
+``is'' & 0.30 & \\
+``attracts'' & 0.15 & \\
+Others & 0.10 & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Loss: $-\log(0.45) = 0.80$
+
+\paragraph{Position $t=3$: Predict ``objects''}
+
+Input: ``Explain gravity simply. Gravity pulls''
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Word} & \textbf{Probability} & \\
+\midrule
+``objects'' & 0.70 & $\leftarrow$ Correct! \\
+``things'' & 0.20 & \\
+``matter'' & 0.08 & \\
+Others & 0.02 & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Loss: $-\log(0.70) = 0.36$
+
+\paragraph{Position $t=4$: Predict ``together''}
+
+Input: ``Explain gravity simply. Gravity pulls objects''
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Word} & \textbf{Probability} & \\
+\midrule
+``together'' & 0.55 & $\leftarrow$ Correct! \\
+``downward'' & 0.25 & \\
+``towards'' & 0.15 & \\
+Others & 0.05 & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Loss: $-\log(0.55) = 0.60$
+
+\textbf{Total loss for this example:}
+
+\begin{align*}
+\mathcal{L}_{\text{this example}} &= \frac{1}{T}\sum_{t=1}^T -\log \pi_\theta(y_t \,|\, x, y_{<t}) \\
+&= \frac{1}{4}(0.51 + 0.80 + 0.36 + 0.60) = \frac{2.27}{4} = 0.57
+\end{align*}
+
+\textbf{Now average over ALL 10,000 demonstrations in the dataset:}
+
+\begin{align*}
+\mathcal{L}_{\text{SFT}} &= \frac{1}{10000} \sum_{\text{all examples}} \mathcal{L}_{\text{example}} \approx 0.62 \quad \text{(average over dataset)}
+\end{align*}
+
+\begin{infobox}
+\textbf{What gradient descent does:} Calculate the loss (0.62), compute gradients (``How should I adjust each of the billion parameters?''), update parameters to reduce loss, new loss after update: 0.58 (improved!), repeat for thousands of iterations, final loss: 0.15 (much better!).
+
+\textbf{Result:} Model learns to generate responses similar to the demonstrations!
+\end{infobox}
+
+\begin{tipbox}
+\textbf{What SFT achieves:} Model learns to follow instructions and produce appropriate response formats. But it can't capture all nuances of what makes responses good and is limited by quality and diversity of demonstrations. That's why we need Step 2.
+\end{tipbox}
+
+\section{Step 2: Reward Modeling}
+
+\subsection{The Key Insight}
+
+\textbf{The problem:} Writing perfect responses is hard and expensive.
+
+\textbf{The solution:} Comparing responses is much easier!
+
+\begin{center}
+\begin{tabular}{p{0.1\textwidth}p{0.8\textwidth}}
+\toprule
+\textbf{Hard:} & ``Write the perfect explanation of neural networks'' (Takes expert 30 minutes) \\
+\midrule
+\textbf{Easy:} & ``Which explanation is better, A or B?'' (Takes anyone 30 seconds) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+This insight is the foundation of reward modeling!
+
+\subsection{The Bradley-Terry Model}
+
+\begin{infobox}
+\textbf{Modeling Preferences Mathematically}
+
+\begin{center}
+\begin{tabular}{p{0.43\textwidth}p{0.43\textwidth}}
+\toprule
+\textbf{Formal Math} & \textbf{What It Really Means} \\
+\midrule
+$P(y_w \succ y_l \,|\, x) = \frac{\exp(r_\phi(x, y_w))}{\exp(r_\phi(x, y_w)) + \exp(r_\phi(x, y_l))}$ & Probability that response $y_w$ is preferred over $y_l$ \\
+\midrule
+$P(y_w \succ y_l) = \sigma(r_\phi(y_w) - r_\phi(y_l))$ & Preference probability = sigmoid of score difference \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Symbol Guide:}
+
+\begin{center}
+\begin{tabular}{p{0.35\textwidth}p{0.55\textwidth}}
+\toprule
+\textbf{Symbol} & \textbf{Meaning} \\
+\midrule
+$y_w$ & Winner response (the one humans preferred) \\
+$y_l$ & Loser response (the one humans disliked) \\
+$\succ$ & ``is preferred to'' \\
+$r_\phi(\cdot)$ & Reward model with parameters $\phi$ (outputs a score) \\
+$\exp(\cdot)$ & Exponential function ($e^x$) \\
+$\sigma(z) = \frac{1}{1+e^{-z}}$ & Sigmoid function (squashes any number to 0--1 range) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Why use sigmoid and exponentials?} We need output between 0 and 1 (it's a probability), sigmoid provides a smooth differentiable function, exponentials make differences more pronounced, and this is the Bradley-Terry model from statistics.
+\end{infobox}
+
+\textbf{Let's see Bradley-Terry with real numbers!}
+
+\textbf{Scenario:} Two explanations of black holes.
+
+\textbf{Response A (Winner---simple and clear):}
+\begin{quote}
+``Black holes are like cosmic vacuum cleaners. They have such strong gravity that nothing can escape once it gets too close---not even light! That's why they're `black'---we can't see them because no light escapes.''
+\end{quote}
+
+\textbf{Response B (Loser---too technical):}
+\begin{quote}
+``Black holes are singularities in spacetime manifolds where the curvature becomes infinite and the Schwarzschild radius defines the event horizon beyond which the escape velocity exceeds the speed of light in vacuum\ldots''
+\end{quote}
+
+\paragraph{Step 1: Reward model scores both responses}
+
+The reward model (a neural network) processes each response:
+
+\begin{itemize}[nosep]
+    \item Score for A: $r_\phi(y_A) = 8.2$ (high score---good response!)
+    \item Score for B: $r_\phi(y_B) = 3.1$ (low score---too complex!)
+    \item Difference: $8.2 - 3.1 = 5.1$
+\end{itemize}
+
+\paragraph{Step 2: Convert score difference to probability using sigmoid}
+
+\begin{align*}
+P(A \succ B) &= \sigma(r_\phi(A) - r_\phi(B)) = \sigma(8.2 - 3.1) = \sigma(5.1) \\
+&= \frac{1}{1 + e^{-5.1}} = \frac{1}{1 + 0.0061} = \frac{1}{1.0061} = 0.994 \text{ or } 99.4\%
+\end{align*}
+
+\begin{tipbox}
+The reward model is 99.4\% confident that Response A is better than Response B! A uses a clear analogy, explains WHY they're black, and is accessible. B uses too much jargon and assumes advanced physics knowledge.
+\end{tipbox}
+
+\paragraph{Step 3: What if scores were closer?}
+
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+\textbf{Score A} & \textbf{Score B} & \textbf{Difference} & \textbf{$P(A \succ B)$} \\
+\midrule
+8.2 & 3.1 & 5.1 & 99.4\% (A clearly better) \\
+6.5 & 5.5 & 1.0 & 73.1\% (A probably better) \\
+6.0 & 5.8 & 0.2 & 55.0\% (nearly a toss-up) \\
+6.0 & 6.0 & 0.0 & 50.0\% (exactly equal) \\
+5.5 & 6.5 & $-1.0$ & 26.9\% (B probably better) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{The sigmoid function's role:}
+
+\begin{center}
+\begin{tabular}{cc}
+\toprule
+\textbf{Score Difference} & \textbf{What sigmoid does} \\
+\midrule
+$-10$ to $-3$ & Maps to $\approx$0--5\% (B much better) \\
+$-3$ to $-1$ & Maps to 5--27\% (B somewhat better) \\
+$-1$ to $+1$ & Maps to 27--73\% (close call) \\
+$+1$ to $+3$ & Maps to 73--95\% (A somewhat better) \\
+$+3$ to $+10$ & Maps to 95--100\% (A much better) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{infobox}
+\textbf{Why use sigmoid?} It converts any score difference ($-\infty$ to $+\infty$) to a probability (0 to 1). Large differences give near certainty (0\% or 100\%), small differences give uncertainty (near 50\%), and it's smooth and differentiable (good for gradient descent).
+\end{infobox}
+
+\subsection{Training the Reward Model}
+
+\begin{infobox}
+\textbf{The Reward Model Loss Function}
+
+\begin{center}
+\begin{tabular}{p{0.43\textwidth}p{0.43\textwidth}}
+\toprule
+\textbf{Formal Math} & \textbf{What It Really Means} \\
+\midrule
+$\mathcal{L}_{\text{RM}}(\phi) = -\mathbb{E}_{(x,y_w,y_l)}\!\left[\log \sigma(r_\phi(x,y_w) - r_\phi(x,y_l))\right]$ & How well does the reward model predict human preferences? \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Breaking it down:}
+
+\begin{center}
+\begin{tabular}{p{0.35\textwidth}p{0.55\textwidth}}
+\toprule
+\textbf{Component} & \textbf{Purpose} \\
+\midrule
+$(x, y_w, y_l)$ & A triple: (prompt, winning response, losing response) \\
+$r_\phi(x, y_w) - r_\phi(x, y_l)$ & Score difference (should be positive if model is right) \\
+$\sigma(\cdot)$ & Convert to probability (should be $> 0.5$ if model correct) \\
+$\log(\cdot)$ & Log likelihood (heavily penalizes wrong predictions) \\
+$-$ & Minimize loss = maximize correct predictions \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{infobox}
+
+\textbf{Complete training example:}
+
+\textbf{Human preference:} Response A $\succ$ Response B (A is better).
+
+\paragraph{Iteration 1: Untrained reward model (random scores)}
+
+Scores: $r_\phi(A) = 5.0$, $r_\phi(B) = 5.5$. Difference: $5.0 - 5.5 = -0.5$.
+
+$P(A \succ B) = \sigma(-0.5) = 0.378$ or 37.8\%.
+
+\textbf{Problem:} Model thinks B is better (62.2\%), but humans said A is better! Loss: $-\log(0.378) = 0.973$ (high loss = bad prediction).
+
+\paragraph{Iteration 100: Partially trained}
+
+Scores: $r_\phi(A) = 6.0$, $r_\phi(B) = 5.2$. Difference: $0.8$.
+
+$P(A \succ B) = \sigma(0.8) = 0.689$ or 68.9\%. Better! Loss: $-\log(0.689) = 0.372$ (lower loss).
+
+\paragraph{Iteration 10,000: Well-trained}
+
+Scores: $r_\phi(A) = 8.3$, $r_\phi(B) = 3.8$. Difference: $4.5$.
+
+$P(A \succ B) = \sigma(4.5) = 0.989$ or 98.9\%. Excellent! Loss: $-\log(0.989) = 0.011$ (very low).
+
+\textbf{Training progress on 50,000 preference pairs:}
+
+\begin{center}
+\begin{tabular}{ccc}
+\toprule
+\textbf{Training step} & \textbf{Average loss} & \textbf{Accuracy} \\
+\midrule
+0 (random) & 0.693 & 50\% \\
+1,000 & 0.420 & 68\% \\
+5,000 & 0.210 & 82\% \\
+10,000 & 0.095 & 91\% \\
+20,000 & 0.045 & 96\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{infobox}
+\textbf{What the reward model learned:} After seeing 50,000 human preferences, it internalized patterns. High-scoring responses are clear and concise, answer the actual question, have appropriate detail level, a helpful tone, and accurate information. Low-scoring responses are confusing or verbose, off-topic, too brief or too long, rude or unhelpful, or contain factual errors.
+
+\textbf{Nobody programmed these criteria---the model learned them from examples!}
+\end{infobox}
+
+\section{Step 3: RL with PPO}
+
+\subsection{The RLHF Objective}
+
+\begin{infobox}
+\textbf{The Complete RLHF Optimization Goal}
+
+\begin{center}
+\begin{tabular}{p{0.43\textwidth}p{0.43\textwidth}}
+\toprule
+\textbf{Formal Math} & \textbf{What It Really Means} \\
+\midrule
+$\max_{\pi_\theta} \mathbb{E}_{x,y}\!\left[r_\phi(x,y)\right] - \beta \cdot \mathbb{E}_x\!\left[\text{KL}(\pi_\theta \,\|\, \pi_{\text{ref}})\right]$ & Maximize reward BUT stay close to original model \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Two competing objectives:}
+
+\begin{center}
+\begin{tabular}{p{0.35\textwidth}p{0.55\textwidth}}
+\toprule
+\textbf{Term} & \textbf{Purpose} \\
+\midrule
+$\mathbb{E}_{x,y}\!\left[r_\phi(x,y)\right]$ & Get high rewards (generate good responses) \\
+$\beta \cdot \text{KL}(\pi_\theta \,\|\, \pi_{\text{ref}})$ & Penalty for drifting from reference model \\
+\midrule
+$\pi_\theta$ & The policy we're training (current model) \\
+$\pi_{\text{ref}}$ & Reference policy (frozen original model)---prevents drift \\
+$r_\phi(x,y)$ & Reward model score for prompt $x$, response $y$ \\
+$\beta$ & KL penalty coefficient (typically 0.01--0.05)---controls tradeoff \\
+$\text{KL}(\cdot \,\|\, \cdot)$ & Measure of how different two distributions are \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Why do we NEED the KL penalty?} Without it, the model could ``reward hack''---find ways to exploit the reward model that give high scores but aren't actually good. The KL penalty keeps the model grounded by preventing it from drifting too far from the original (which was trained on real text).
+\end{infobox}
+
+\textbf{Why do we need BOTH terms? A cautionary tale:}
+
+\textbf{Scenario: Training with ONLY reward (no KL penalty)}
+
+\begin{center}
+\begin{tabular}{cp{0.65\textwidth}}
+\toprule
+\textbf{Iteration} & \textbf{Generated response} \\
+\midrule
+1 & ``Here's a thoughtful explanation of your question\ldots'' Reward: 8.0, KL: 0.1 \\
+50 & ``AMAZING COMPREHENSIVE DETAILED PERFECT ANSWER EXCELLENT THOROUGH\ldots'' Reward: 9.5, KL: 2.5. \textit{Model learned reward model likes these words!} \\
+100 & ``PERFECT PERFECT EXCELLENT EXCELLENT AMAZING AMAZING\ldots'' Reward: 12.0, KL: 10.0. \textit{Reward hacking! High score but complete nonsense!} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Problem:} Model exploited the reward model instead of being genuinely helpful!
+
+\textbf{Solution: Add KL penalty term.} With $\beta = 0.02$, the objective becomes Reward $- 0.02 \times$ KL:
+
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+\textbf{Iter} & \textbf{Reward} & \textbf{KL} & \textbf{Objective} \\
+\midrule
+1 & 8.0 & 0.1 & $8.0 - 0.02(0.1) = 7.998$ (best) \\
+50 & 9.5 & 2.5 & $9.5 - 0.02(2.5) = 9.450$ \\
+100 & 12.0 & 10.0 & $12.0 - 0.02(10) = 11.800$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{infobox}
+\textbf{The KL penalty prevents reward hacking!} The model can't just exploit the reward model because drifting too far gets heavily penalized. It must find genuine improvements within the allowed KL budget, forcing responses to stay coherent and natural.
+
+\textbf{Tuning $\beta$:} Too small (0.001) risks reward hacking, just right (0.01--0.05) gives balanced improvement, too large (0.1) is too constrained to improve.
+\end{infobox}
+
+\subsection{The KL Divergence Term}
+
+\begin{infobox}
+\textbf{Measuring Model Drift}
+
+\begin{center}
+\begin{tabular}{p{0.43\textwidth}p{0.43\textwidth}}
+\toprule
+\textbf{Formal Math} & \textbf{What It Really Means} \\
+\midrule
+$\text{KL}(\pi_\theta \,\|\, \pi_{\text{ref}}) = \mathbb{E}_{y \sim \pi_\theta}\!\left[\log \frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)}\right]$ & Average difference in how models assign probabilities \\
+\midrule
+$\sum_{t=1}^T \left[\log \pi_\theta(y_t|x,y_{<t}) - \log \pi_{\text{ref}}(y_t|x,y_{<t})\right]$ & Sum over each word: compare new vs old probability \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{p{0.35\textwidth}p{0.55\textwidth}}
+\toprule
+\textbf{Symbol} & \textbf{Meaning} \\
+\midrule
+$\text{KL}$ & Kullback-Leibler divergence (measures distribution difference) \\
+$\pi_\theta$ & Current (training) model \\
+$\pi_{\text{ref}}$ & Reference (frozen original) model \\
+$\log \frac{\pi_\theta}{\pi_{\text{ref}}}$ & Log ratio of probabilities \\
+$\mathbb{E}_{y \sim \pi_\theta}$ & Average over responses generated by $\pi_\theta$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{infobox}
+
+\textbf{Computing KL with actual numbers:}
+
+\textbf{Response:} ``The answer is 42''
+
+\textbf{Word 1: ``The''} --- New model: $\pi_\theta = 0.80$, Old model: $\pi_{\text{ref}} = 0.75$. Ratio: $\frac{0.80}{0.75} = 1.067$. Log ratio: $\log(1.067) = 0.065$.
+
+\textbf{Word 2: ``answer''} --- New: 0.60, Old: 0.65. Ratio: 0.923. Log ratio: $-0.080$.
+
+\textbf{Word 3: ``is''} --- New: 0.90, Old: 0.85. Ratio: 1.059. Log ratio: $0.057$.
+
+\textbf{Word 4: ``42''} --- New: 0.40, Old: 0.35. Ratio: 1.143. Log ratio: $0.134$.
+
+\textbf{Total KL divergence:}
+\begin{align*}
+\text{KL} &= 0.065 + (-0.080) + 0.057 + 0.134 = 0.176
+\end{align*}
+
+\begin{tipbox}
+KL = 0.176 (very small!). Scale: KL $\approx$ 0 means models are nearly identical, KL $\approx$ 0.5--1.0 means moderate difference, KL $> 2.0$ means very different. Our KL of 0.176 means the models are still very similar!
+\end{tipbox}
+
+\textbf{What happens during training? KL over time:}
+
+\begin{center}
+\begin{tabular}{cccl}
+\toprule
+\textbf{Training Step} & \textbf{KL} & \textbf{Status} & \textbf{What's happening} \\
+\midrule
+0 & 0.00 & OK & Identical to reference \\
+1,000 & 0.15 & OK & Small changes, learning \\
+5,000 & 0.45 & OK & Moderate changes, improving \\
+10,000 & 0.80 & Caution & Approaching limit \\
+15,000 & 0.95 & Caution & Near maximum allowed \\
+20,000 & 0.98 & Caution & Can't go much further \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+With $\beta = 0.02$, the penalty at step 15,000 is: $\text{Penalty} = 0.02 \times 0.95 = 0.019$. If reward is 8.5: $\text{Objective} = 8.5 - 0.019 = 8.481$.
+
+\begin{infobox}
+\textbf{The KL term acts as a ``leash'':} The model can explore and improve, but can't drift too far from the original. This prevents nonsense and reward hacking, ensures responses stay natural, and the $\beta$ parameter controls how tight the leash is!
+\end{infobox}
+
+\end{chapterenv}

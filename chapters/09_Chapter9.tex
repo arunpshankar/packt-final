@@ -4,13 +4,6 @@
 
 \section{Why Reward Models Matter}
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.92\linewidth]{images/ch09_fig01_reward_model_arch.png}
-\caption{Reward model architecture: a transformer backbone with a linear scalar head trained to assign higher scores to preferred responses.}
-\label{fig:ch09:rmarch}
-\end{figure}
-
 Every method we have covered since Chapter 6 depends on some way of scoring responses. RLHF uses a trained reward model. DPO encodes an implicit reward in the policy ratio. Online DPO needs a judge to construct preference pairs. STaR needs a verifier to separate correct solutions from incorrect ones. Expert Iteration needs a scoring function to select the best candidate.
 
 The quality of this scoring signal is the single most important factor determining the quality of the final model. A perfect RL algorithm optimizing a bad reward model will produce a bad model. A mediocre algorithm optimizing a good reward model will produce a good model. Getting the reward right matters more than getting the algorithm right.
@@ -46,13 +39,6 @@ The output is an unbounded real number. Higher means ``better response.'' The ab
 Chapter 6 introduced the core mechanics: collect human preference pairs, train with the Bradley-Terry loss, and the reward model learns to score responses in a way that matches human judgments. Here we go deeper on the practical questions that determine whether your reward model is actually useful.
 
 \subsection{Where Preference Data Comes From}
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.92\linewidth]{images/ch09_fig02_preference_annotation.png}
-\caption{Human preference annotation pipeline: two responses are generated per prompt and a human annotator labels the preferred one.}
-\label{fig:ch09:annotation}
-\end{figure}
 
 The quality and diversity of your preference data shapes everything downstream. There are three main sources, each with different cost and quality tradeoffs.
 
@@ -267,12 +253,14 @@ Chapter 10 surveys the full landscape of modern RL algorithms, including GRPO, R
 Chapter 11 goes beyond scalar reward models to explore more sophisticated scoring mechanisms: process reward models that score each reasoning step individually, outcome verifiers that check correctness with formal tools, and the dramatic accuracy improvements that step-level feedback enables on reasoning tasks.
 
 
-\begin{tipbox}
-\textbf{Companion notebook.} The code for this chapter is in
-\texttt{code/notebooks/part2\_core/09\_reward\_modeling.ipynb}
-in the book repository at \texttt{github.com/arunpshankar/packt-final}.
-On GitHub, navigate to the file and replace \texttt{github.com} with
-\texttt{githubtocolab.com} in the URL to open it directly in Colab.
-\end{tipbox}
+The companion code for this chapter is at \texttt{github.com/arunpshankar/packt-final} -- swap \texttt{github.com} for \texttt{githubtocolab.com} to open it directly in Colab. The diagram below provides a visual summary of reward modeling covered in this chapter.
+
+\clearpage
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.88\textwidth]{images/ch09_fig01_reward_modeling_overview.png}
+\caption{Reward modeling at a glance -- collect human preferences, train a scoring model, and use it to drive RL optimization toward aligned outputs.}
+\label{fig:ch09:reward_modeling_overview}
+\end{figure}
 
 \end{chapterenv}

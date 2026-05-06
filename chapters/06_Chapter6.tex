@@ -4,13 +4,6 @@
 
 \section{The Three-Step Dance}
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.92\linewidth]{images/ch06_fig01_rlhf_pipeline.png}
-\caption{The RLHF three-step pipeline: supervised fine-tuning, reward model training on human preferences, and PPO policy optimisation.}
-\label{fig:ch06:rlhf}
-\end{figure}
-
 In 2022, OpenAI released ChatGPT and the world changed overnight. Suddenly, AI was not just generating text. It was \textit{genuinely helpful}. The secret was a three-step process called RLHF (Reinforcement Learning from Human Feedback).
 
 You have already completed Step 1. In Chapter 5, we used supervised fine-tuning to teach the model basic competence: follow instructions, produce structured responses, and generate reasoning traces with \texttt{<think>} tags. That gave us a solid foundation, but one that is limited to imitating its training data.
@@ -470,13 +463,6 @@ The $\beta$ parameter controls how tight the leash is. This is one of the most i
 
 \subsection{How PPO Actually Works}
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.92\linewidth]{images/ch06_fig02_ppo_clipping.png}
-\caption{PPO clipping constrains the policy update ratio $r_t(\theta)$ to the interval $[1-\epsilon,\, 1+\epsilon]$, preventing destructively large steps.}
-\label{fig:ch06:ppoclip}
-\end{figure}
-
 PPO is the specific RL algorithm that optimizes the RLHF objective. We introduced the general RL framework in Chapter 3 (policies, rewards, value functions). PPO puts all three components together in a carefully designed training loop.
 
 \begin{infobox}
@@ -623,12 +609,14 @@ In this chapter, we completed the classical RLHF pipeline.
 In Chapter 7, we will see DPO, an elegant alternative that collapses the reward model and RL optimization into a single training step. DPO has become the preferred approach for many practitioners because it is simpler to implement, more stable to train, and requires less GPU memory. Understanding the classical RLHF pipeline from this chapter is essential context for appreciating what DPO simplifies and what tradeoffs it makes.
 
 
-\begin{tipbox}
-\textbf{Companion notebook.} The code for this chapter is in
-\texttt{code/notebooks/part2\_core/06\_rlhf\_ppo.ipynb}
-in the book repository at \texttt{github.com/arunpshankar/packt-final}.
-On GitHub, navigate to the file and replace \texttt{github.com} with
-\texttt{githubtocolab.com} in the URL to open it directly in Colab.
-\end{tipbox}
+The companion code for this chapter is at \texttt{github.com/arunpshankar/packt-final} -- swap \texttt{github.com} for \texttt{githubtocolab.com} to open it directly in Colab. The diagram below provides a visual summary of the RLHF and PPO pipeline covered in this chapter.
+
+\clearpage
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.88\textwidth]{images/ch06_fig01_rlhf_ppo_overview.png}
+\caption{RLHF \& PPO at a glance -- collecting human preferences, training a reward model, and fine-tuning with PPO to produce an aligned LLM.}
+\label{fig:ch06:rlhf_ppo_overview}
+\end{figure}
 
 \end{chapterenv}

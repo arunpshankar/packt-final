@@ -36,13 +36,6 @@ For language models: Supervised = ``Copy these good responses.'' RL = ``Try many
 
 \subsection{Overview}
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.92\linewidth]{images/ch03_fig01_agent_env_loop.png}
-\caption{The agent--environment loop: at every timestep the agent selects an action, the environment returns a new state and reward.}
-\label{fig:ch03:agentenv}
-\end{figure}
-
 Every RL system has five key pieces. Think of it like a video game. The following table maps each RL concept to its equivalent language model:
 
 \begin{center}
@@ -68,13 +61,6 @@ Agent in State $\rightarrow$ Takes Action $\rightarrow$ Gets Reward $\rightarrow
 For a language model, this loop runs once for every single word it writes. The model looks at everything so far (state), picks a word (action), gets some signal about how things are going (reward), and the state updates to include the new word. Then it picks the next word and the cycle continues until the response is complete.
 
 \subsection{The Policy: The Agent's Strategy}
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.92\linewidth]{images/ch03_fig02_policy_types.png}
-\caption{Deterministic policies map each state to a single action; stochastic policies assign a probability distribution over actions.}
-\label{fig:ch03:policy}
-\end{figure}
 
 The \textbf{policy} is the agent's decision-making strategy. It answers: ``Given what has happened so far, what should I do next?''
 
@@ -329,12 +315,14 @@ In the next chapter, we will set up a free coding environment (Chapter 4) so tha
 As we move deeper into the book, you will see these RL fundamentals appear again and again. In Chapter 6, we will meet PPO, an algorithm that uses the policy, value function, and reward signal together in a carefully choreographed training loop. In Chapter 10, we will encounter GRPO, a newer algorithm that achieves similar results while removing the need for the value function entirely. The concepts you have built here are the foundation for understanding both.
 
 
-\begin{tipbox}
-\textbf{Companion notebook.} The code for this chapter is in
-\texttt{code/notebooks/part1\_foundations/03\_rl\_fundamentals.ipynb}
-in the book repository at \texttt{github.com/arunpshankar/packt-final}.
-On GitHub, navigate to the file and replace \texttt{github.com} with
-\texttt{githubtocolab.com} in the URL to open it directly in Colab.
-\end{tipbox}
+The companion code for this chapter is at \texttt{github.com/arunpshankar/packt-final} -- swap \texttt{github.com} for \texttt{githubtocolab.com} to open it directly in Colab. The diagram below provides a visual summary of the RL concepts covered in this chapter.
+
+\clearpage
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.88\textwidth]{images/ch03_fig01_rl_overview.png}
+\caption{From pre-training to RL fine-tuning -- the bridge from pattern learning to preference learning.}
+\label{fig:ch03:rl_overview}
+\end{figure}
 
 \end{chapterenv}

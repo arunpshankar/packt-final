@@ -4,6 +4,13 @@
 
 \section{When Things Go Wrong}
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\linewidth]{images/ch18_fig01_reasoner_pipeline.png}
+\caption{Reasoner training pipeline: cold-start SFT initialises the chain-of-thought format, GRPO with verifiable rewards drives reasoning improvement.}
+\label{fig:ch18:reasoner}
+\end{figure}
+
 RL training is notoriously unstable. The supervised learning loop -- compute loss, backpropagate, update weights -- behaves predictably. The RL loop -- generate rollouts, estimate advantages, update policy, generate new rollouts from the updated policy -- is a closed feedback system where small errors compound and training can diverge in ways that are difficult to diagnose from loss curves alone.
 
 This chapter covers the most common failure modes in RL-for-LLM training, how to detect them early, how to fix them, and how to scale RL training to larger models and longer horizons without catastrophic failure. It also covers operational concerns: serving RL-trained models in production, monitoring for reward hacking drift, and knowing when to retrain.

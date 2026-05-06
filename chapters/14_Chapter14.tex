@@ -4,6 +4,13 @@
 
 \section{The Self-Improvement Loop}
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\linewidth]{images/ch14_fig01_cai_pipeline.png}
+\caption{Constitutional AI two-stage pipeline: SL-CAI uses self-critique and revision to generate training data; RL-CAI uses AI-generated preference labels.}
+\label{fig:ch14:cai}
+\end{figure}
+
 Everything up to this point has required external feedback: human annotators comparing responses, ground-truth labels to verify answers, or reward models trained on human preferences. Self-play and iterative refinement break this dependency. The model generates outputs, evaluates them against its own standards, produces improved versions, and repeats. No external oracle is needed -- at least not for every step.
 
 This is counterintuitive. How can a model improve itself if it is also the judge? The key insight is that models are often better at \textit{verification} than at \textit{generation}. Judging whether a solution is correct is a simpler task than producing a correct solution from scratch. By separating generation and evaluation into distinct passes, we exploit this asymmetry.

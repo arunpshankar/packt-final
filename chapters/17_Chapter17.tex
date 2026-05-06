@@ -4,6 +4,13 @@
 
 \section{From Techniques to Systems}
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\linewidth]{images/ch17_fig01_chatbot_pipeline.png}
+\caption{End-to-end chatbot training: SFT initialises the policy, a reward model is trained on preferences, and DPO aligns the final chatbot.}
+\label{fig:ch17:chatbot}
+\end{figure}
+
 The previous chapters built a toolkit: SFT for cold-starting (Chapter 5), RLHF and PPO for preference alignment (Chapter 6), DPO and Online DPO for efficient preference learning (Chapters 7--8), reward models for feedback signals (Chapter 9), GRPO and RLOO for token-level RL (Chapter 10), verifiers and PRMs for step-level credit (Chapter 11), reasoning emergence via GRPO (Chapter 12), test-time compute for inference-time scaling (Chapter 13), self-play for self-improving systems (Chapter 14), multi-objective RL for balancing competing goals (Chapter 15), and domain-specific reward functions for code, math, and tools (Chapter 16).
 
 The question now is: how do you assemble these ingredients into a working production system? The answer depends on what you are building. This chapter presents three recipes -- one for each major use case -- with concrete implementation guidance, expected training costs, and evaluation checklists.

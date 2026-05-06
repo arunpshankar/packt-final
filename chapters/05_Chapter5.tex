@@ -4,6 +4,13 @@
 
 \section{Why SFT Comes First}
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\linewidth]{images/ch05_fig01_sft_pipeline.png}
+\caption{The supervised fine-tuning pipeline: curated prompt--response pairs are used to minimise cross-entropy loss on the base LLM.}
+\label{fig:ch05:sft}
+\end{figure}
+
 In Chapter 2, we identified the alignment gap: language models trained to predict text are not automatically helpful, harmless, or honest. In Chapter 3, we built the RL vocabulary of policies, rewards, and value functions. In Chapter 4, we set up a working environment and verified that the entire training pipeline runs. Now we take the first concrete step toward closing that gap.
 
 That step is \textbf{Supervised Fine-Tuning} (SFT).
@@ -269,6 +276,13 @@ The \texttt{target\_modules} list specifies which weight matrices inside each tr
 Everything up to this point, the SFT loss, LoRA, the training pipeline, is well-established practice. Thousands of tutorials cover it. But there is a deeper problem that most tutorials ignore, and it is the reason this chapter exists as a standalone chapter in this book rather than a footnote.
 
 \subsection{What Happens Without the Cold Start}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\linewidth]{images/ch05_fig02_cold_start.png}
+\caption{The cold-start problem: RL from scratch (dashed) struggles without an initial policy; SFT warm-starting (solid) accelerates learning.}
+\label{fig:ch05:coldstart}
+\end{figure}
 
 Consider a typical SFT dataset. The training examples look like this:
 

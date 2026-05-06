@@ -4,6 +4,13 @@
 
 \section{The Offline Limitation}
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\linewidth]{images/ch08_fig01_online_dpo_loop.png}
+\caption{Online DPO iterates: generate response pairs from the current policy, score with the reward model, update with DPO loss, repeat.}
+\label{fig:ch08:onlinedpo}
+\end{figure}
+
 Chapter 7 ended with a candid assessment of the weaknesses of DPO's. The most fundamental one is that DPO is \textit{offline}: it trains on a fixed dataset of preference pairs and never generates new responses during training. The policy cannot discover strategies that are not already represented in the data.
 
 This matters more than it might seem. Consider what happens as training progresses. The policy improves, which means that it is now a different model from the one that generated the preference data. The responses it would produce today are not the responses that were compared in the data set. It is learning from a world that it no longer inhabits.

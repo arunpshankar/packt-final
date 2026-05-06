@@ -4,6 +4,13 @@
 
 \section{The Algorithm Landscape}
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\linewidth]{images/ch10_fig01_grpo_sampling.png}
+\caption{GRPO group sampling: $G$ responses are generated per prompt and normalised within the group to form advantage estimates -- no critic network needed.}
+\label{fig:ch10:grpo}
+\end{figure}
+
 Chapters 6 and 7 introduced the two workhorses of LLM alignment: PPO (the classical RL approach with a reward model, value function, and clipped policy updates) and DPO (the elegant shortcut that trains directly on preference pairs). Together they cover a wide range of practical needs, but neither is the final word. Since 2023, researchers have introduced a family of alternatives, each designed to solve a specific limitation.
 
 Some of these algorithms eliminate the value function that makes PPO expensive. Others work with cheaper forms of feedback than paired comparisons. Still others merge supervised learning and preference optimization into a single training stage. This chapter surveys the most important ones: GRPO, RLOO, KTO, IPO, and ORPO.
@@ -159,6 +166,13 @@ Memory & 4 models & 2 models \\
 \end{infobox}
 
 \section{RLOO: REINFORCE Leave-One-Out}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\linewidth]{images/ch10_fig02_algo_comparison.png}
+\caption{Comparison of GRPO, RLOO, and KTO: they differ in how the baseline is computed, whether a reward model is required, and what signal drives the update.}
+\label{fig:ch10:algos}
+\end{figure}
 
 RLOO refines the baseline idea one step further. Like GRPO, it generates a group of responses per prompt. But instead of comparing each response against the group average (which includes that response), it compares each response against the average of the \textit{other} responses in the group. This small change produces meaningfully lower variance.
 

@@ -36,6 +36,13 @@ For language models: Supervised = ``Copy these good responses.'' RL = ``Try many
 
 \subsection{Overview}
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\linewidth]{images/ch03_fig01_agent_env_loop.png}
+\caption{The agent--environment loop: at every timestep the agent selects an action, the environment returns a new state and reward.}
+\label{fig:ch03:agentenv}
+\end{figure}
+
 Every RL system has five key pieces. Think of it like a video game. The following table maps each RL concept to its equivalent language model:
 
 \begin{center}
@@ -61,6 +68,13 @@ Agent in State $\rightarrow$ Takes Action $\rightarrow$ Gets Reward $\rightarrow
 For a language model, this loop runs once for every single word it writes. The model looks at everything so far (state), picks a word (action), gets some signal about how things are going (reward), and the state updates to include the new word. Then it picks the next word and the cycle continues until the response is complete.
 
 \subsection{The Policy: The Agent's Strategy}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\linewidth]{images/ch03_fig02_policy_types.png}
+\caption{Deterministic policies map each state to a single action; stochastic policies assign a probability distribution over actions.}
+\label{fig:ch03:policy}
+\end{figure}
 
 The \textbf{policy} is the agent's decision-making strategy. It answers: ``Given what has happened so far, what should I do next?''
 

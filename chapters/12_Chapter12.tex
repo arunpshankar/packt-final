@@ -4,6 +4,13 @@
 
 \section{The Paradigm Shift: Skipping SFT}
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\linewidth]{images/ch12_fig01_deepseek_phases.png}
+\caption{The DeepSeek-R1 five-phase training pipeline alternates between GRPO reinforcement learning and supervised anchoring via rejection sampling.}
+\label{fig:ch12:deepseek}
+\end{figure}
+
 The standard pipeline for building a capable LLM has three stages: pretrain on text, supervised fine-tune on demonstrations (Chapter 5), then align with RL (Chapters 6--10). Every major model through 2023--ChatGPT, Claude, Llama-Chat--followed this recipe. Supervised fine-tuning was considered essential: you needed to show the model thousands of examples of good behavior before RL could refine it further.
 
 In early 2024, DeepSeek challenged this assumption. Their model, DeepSeek-R1, achieved state-of-the-art reasoning performance with a radically simplified pipeline: \textbf{Pretrain $\to$ RL}. That is it. No supervised fine-tuning. No human-written demonstrations of step-by-step reasoning. Just a pretrained model, a reward signal (``did you get the right answer?''), and GRPO.
@@ -127,6 +134,13 @@ RL training shows the same phase transition dynamics.
 \end{tipbox}
 
 \section{Three Types of Chain-of-Thought}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\linewidth]{images/ch12_fig02_think_answer_format.png}
+\caption{The \texttt{<think>}$\ldots$\texttt{</think>} scratchpad format separates the model's chain-of-thought reasoning from its final answer.}
+\label{fig:ch12:format}
+\end{figure}
 
 DeepSeek-R1's RL-discovered reasoning is one of three ways to get chain-of-thought behavior from an LLM. Understanding the alternatives clarifies what makes the RL approach special.
 

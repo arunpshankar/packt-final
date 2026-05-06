@@ -1,6 +1,6 @@
 \begin{chapterenv}
 
-\chapter{Essential Math Concepts}
+\chapter{Essential Math Toolkit}
 
 Before we dive into AI and reinforcement learning, let us make sure that we are comfortable with the mathematical language we will be using. Think of this chapter as your toolkit: we are going to explain every symbol, every operation, and every concept that you will see in this book.
 
@@ -88,7 +88,7 @@ $P(\text{next word} \,|\, \text{all previous words})$
 
 This reads: ``Probability of the next word, \textit{given} all the words we have seen so far.''
 
-\textbf{Example sentence:} ``The cat sat on the \_ \_ \_'.
+\textbf{Example sentence:} ``The cat sat on the \_ \_ \_''.
 
 \begin{align*}
 P(\text{``mat''} \,|\, \text{``The cat sat on the''}) &= 0.35 \text{ (35\% likely)} \\
@@ -103,6 +103,7 @@ The model uses the context (everything before $|$) to predict what comes next!
 
 \begin{center}
 \begin{tabular}{ll}
+\toprule
 \textbf{Notation} & \textbf{Read as\ldots} \\
 \midrule
 $P(A | B)$ & ``Probability of A given B'' \\

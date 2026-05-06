@@ -10,23 +10,9 @@ Before we dive into AI and reinforcement learning, let us make sure that we are 
 \textbf{Key promise:} Every single symbol you see later in the book will make sense because we'll explain it here first!
 \end{infobox}
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.98\linewidth]{images/ch01_fig01_math_overview.png}
-\caption{Chapter 1 at a glance -- a visual map of the essential math toolkit: probability, logarithms, expected value, summation, sigmoid, loss functions, gradient descent, and key notation.}
-\label{fig:ch01:math_overview}
-\end{figure}
-
 \section{Probability: The Language of Uncertainty}
 
 \subsection{What Is Probability?}
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.92\linewidth]{images/ch01_fig01_probability_space.png}
-\caption{Probability as area: the sample space $\Omega$ partitioned into overlapping events $A$ and $B$.}
-\label{fig:ch01:probability}
-\end{figure}
 
 \textbf{Probability} is just a fancy way of measuring ``how likely is something to happen?'' We use numbers between 0 and 1:
 
@@ -451,13 +437,6 @@ Model predicts next word probabilities:
 
 \subsection{What Is a Gradient?}
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.92\linewidth]{images/ch01_fig02_gradient_descent.png}
-\caption{Gradient descent navigates a loss landscape by following the direction of steepest decrease.}
-\label{fig:ch01:gradient}
-\end{figure}
-
 A \textbf{gradient} tells you which direction to go in to reduce the loss.
 
 \textbf{Analogy:} Imagine that you are on a foggy mountain trying to get to the lowest point (valley). The gradient tells you which direction is ``downhill,'' you take a small step in that direction, and repeat until you reach the bottom. This process is called \textbf{gradient descent}.
@@ -514,6 +493,15 @@ $\approx$ & Approximately & Roughly equal \\
 \bottomrule
 \end{tabular}
 \end{center}
+
+The visual cheat sheet below brings all of these ideas together in one place -- keep it handy as you work through the rest of the book.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{images/ch01_fig01_math_overview.png}
+\caption{Visual cheat sheet for Chapter 1 -- probability, conditional probability, logarithms, expected value, summation, sigmoid, loss functions, gradient descent, and key notation at a glance.}
+\label{fig:ch01:math_overview}
+\end{figure}
 
 \begin{infobox}
 \textbf{You now have all the mathematical tools you need!}

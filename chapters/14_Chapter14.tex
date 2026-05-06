@@ -4,7 +4,7 @@
 
 \section{The Self-Improvement Loop}
 
-Everything up to this point has required external feedback: human annotators comparing responses, ground-truth labels to verify answers, or reward models trained on human preferences. Self-play and iterative refinement break this dependency. The model generates outputs, evaluates them against its own standards, produces improved versions, and repeats. No external oracle is needed --- at least not for every step.
+Everything up to this point has required external feedback: human annotators comparing responses, ground-truth labels to verify answers, or reward models trained on human preferences. Self-play and iterative refinement break this dependency. The model generates outputs, evaluates them against its own standards, produces improved versions, and repeats. No external oracle is needed -- at least not for every step.
 
 This is counterintuitive. How can a model improve itself if it is also the judge? The key insight is that models are often better at \textit{verification} than at \textit{generation}. Judging whether a solution is correct is a simpler task than producing a correct solution from scratch. By separating generation and evaluation into distinct passes, we exploit this asymmetry.
 
@@ -23,14 +23,14 @@ This pattern appears in Constitutional AI (Anthropic), STaR (Stanford/Google), E
 
 \section{Constitutional AI}
 
-Traditional RLHF requires thousands of human comparisons: which response is better? This process is slow, expensive, and hard to scale. Constitutional AI (CAI), developed at Anthropic, replaces most of this human feedback with model self-critique guided by a written set of principles --- the \textit{constitution}.
+Traditional RLHF requires thousands of human comparisons: which response is better? This process is slow, expensive, and hard to scale. Constitutional AI (CAI), developed at Anthropic, replaces most of this human feedback with model self-critique guided by a written set of principles -- the \textit{constitution}.
 
 The constitution is a list of principles the model should follow: be helpful, avoid harm, respect privacy, do not deceive. Instead of hiring annotators to apply these principles to millions of response pairs, the model applies them itself.
 
 \begin{infobox}
 \textbf{The two stages of Constitutional AI.}
 
-\textbf{Stage 1 --- Supervised Self-Improvement (SL-CAI):}
+\textbf{Stage 1 -- Supervised Self-Improvement (SL-CAI):}
 \begin{enumerate}
 \item Model generates an initial response to a prompt (possibly harmful or low-quality)
 \item Model critiques its own response according to each constitutional principle
@@ -38,20 +38,20 @@ The constitution is a list of principles the model should follow: be helpful, av
 \item The final (prompt, revised response) pair becomes supervised training data
 \end{enumerate}
 
-\textbf{Stage 2 --- RL from AI Feedback (RLAIF):}
+\textbf{Stage 2 -- RL from AI Feedback (RLAIF):}
 \begin{enumerate}
 \item Model generates pairs of responses to the same prompt
 \item Model (acting as evaluator) chooses which response better follows the constitution
 \item These AI-generated preference labels are used for preference learning (DPO or PPO)
 \end{enumerate}
 
-Human involvement is limited to writing the constitution and occasional validation --- not labeling individual response pairs.
+Human involvement is limited to writing the constitution and occasional validation -- not labeling individual response pairs.
 \end{infobox}
 
 \begin{tipbox}
 \textbf{Designing a constitution.}
 
-A good constitution is specific enough to guide consistent critiques, but not so rigid that it creates conflicting rules. Effective principles are phrased as comparisons: ``Choose the response that is more helpful, harmless, and honest.'' Avoid principles that require external facts the model cannot verify --- the model will confabulate.
+A good constitution is specific enough to guide consistent critiques, but not so rigid that it creates conflicting rules. Effective principles are phrased as comparisons: ``Choose the response that is more helpful, harmless, and honest.'' Avoid principles that require external facts the model cannot verify -- the model will confabulate.
 
 Start with 10--20 principles. Anthropic's published constitution covers harmlessness, honesty, helpfulness, avoiding stereotypes, and respecting autonomy. For domain-specific applications, add task-relevant principles: accuracy for medical assistants, source citation for research tools, code correctness for programming assistants.
 \end{tipbox}
@@ -108,12 +108,12 @@ The clever part is rationalization. Rather than discarding problems the model fa
 
 \textbf{Compounding errors.} If early iterations contain subtle mistakes, the model trains on them and propagates the errors. Inject human-verified examples into each iteration to anchor the distribution.
 
-\textbf{Verification dependency.} STaR requires a reliable correctness signal. It works well for math, code, and logic --- tasks with objective answers. For subjective tasks, Constitutional AI is the better fit.
+\textbf{Verification dependency.} STaR requires a reliable correctness signal. It works well for math, code, and logic -- tasks with objective answers. For subjective tasks, Constitutional AI is the better fit.
 \end{tipbox}
 
 \section{Expert Iteration}
 
-Expert Iteration generalizes the self-improvement idea by separating a \textit{policy} (fast generation) from an \textit{expert} (slow, high-quality planning). The model learns by imitating the expert's better choices --- but the expert is not a human, it is a more expensive search process applied to the model's own outputs.
+Expert Iteration generalizes the self-improvement idea by separating a \textit{policy} (fast generation) from an \textit{expert} (slow, high-quality planning). The model learns by imitating the expert's better choices -- but the expert is not a human, it is a more expensive search process applied to the model's own outputs.
 
 For language models, the expert is typically beam search with reward model scoring: generate the top-$k$ candidates and pick the one the reward model scores highest. This ``expert'' response is better than what greedy sampling would produce, but it is too slow to use at serving time. Expert Iteration trains the policy to be fast \textit{and} to match the expert's quality.
 
@@ -135,7 +135,7 @@ For language models, the expert is typically beam search with reward model scori
 \toprule
 Iteration & Accuracy & Improvement \\
 \midrule
-0 (baseline) & 45\% & --- \\
+0 (baseline) & 45\% & -- \\
 1 & 58\% & +13\% \\
 2 & 67\% & +9\% \\
 3 & 72\% & +5\% \\
@@ -150,7 +150,7 @@ Each iteration produces a stronger model, which generates better candidates for 
 
 SPIN applies the self-play idea to preference optimization. The current model acts as both the opponent (generating synthetic ``rejected'' responses) and the learner (generating ``chosen'' responses). DPO is then applied to prefer the newer model's outputs over the older model's outputs.
 
-This creates a natural curriculum: as the model improves, it must generate increasingly good responses to beat its previous self. Unlike human-preference DPO, no new human annotations are required after the initial dataset --- the model generates its own training signal at each iteration.
+This creates a natural curriculum: as the model improves, it must generate increasingly good responses to beat its previous self. Unlike human-preference DPO, no new human annotations are required after the initial dataset -- the model generates its own training signal at each iteration.
 
 \begin{tipbox}
 \textbf{When to use self-play vs. external feedback.}
@@ -164,7 +164,7 @@ Self-play methods (STaR, CAI, Expert Iteration, SPIN) reduce annotation cost but
 
 Do not use pure self-play when the base model is too weak to self-critique effectively, or when the task requires factual knowledge the model does not already have. In those cases, external feedback (human labels, retrieval, tool use) remains necessary.
 
-Chapter 15 extends these ideas to the harder problem of balancing multiple competing objectives simultaneously --- something that self-play alone cannot solve.
+Chapter 15 extends these ideas to the harder problem of balancing multiple competing objectives simultaneously -- something that self-play alone cannot solve.
 \end{tipbox}
 
 \section{Summary}

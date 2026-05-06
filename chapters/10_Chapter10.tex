@@ -46,7 +46,7 @@ The problem with vanilla REINFORCE is \textit{variance}. Suppose all your reward
 
 $$\nabla J(\theta) = \mathbb{E}_{y \sim \pi_\theta}\!\left[(r(y) - b) \cdot \nabla \log \pi_\theta(y|x)\right]$$
 
-Now responses with reward above the baseline get positive updates (``do more of this'') and responses below the baseline get negative updates (``do less of this''). The signal becomes about relative quality, not absolute scores. Crucially, subtracting any constant baseline does not change the expected gradient---it only reduces its variance.
+Now responses with reward above the baseline get positive updates (``do more of this'') and responses below the baseline get negative updates (``do less of this''). The signal becomes about relative quality, not absolute scores. Crucially, subtracting any constant baseline does not change the expected gradient--it only reduces its variance.
 
 \textbf{The question every algorithm answers differently is: what should $b$ be?}
 
@@ -56,9 +56,9 @@ Now responses with reward above the baseline get positive updates (``do more of 
 \textbf{Algorithm} & \textbf{Baseline choice} \\
 \midrule
 REINFORCE & A fixed constant (e.g., running average of all rewards) \\
-PPO & A learned value function $V_\psi(x)$ that predicts expected reward for each prompt---accurate but expensive (requires a separate neural network) \\
-GRPO & The average reward within a group of responses to the \textit{same prompt}---adaptive and free \\
-RLOO & The average reward of all \textit{other} responses in the group (leave-one-out)---even lower variance than GRPO \\
+PPO & A learned value function $V_\psi(x)$ that predicts expected reward for each prompt--accurate but expensive (requires a separate neural network) \\
+GRPO & The average reward within a group of responses to the \textit{same prompt}--adaptive and free \\
+RLOO & The average reward of all \textit{other} responses in the group (leave-one-out)--even lower variance than GRPO \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -79,7 +79,7 @@ $$\mathcal{L}_{\text{GRPO}} = -\mathbb{E}_{x,\{y_i\}_{i=1}^G}\!\left[\frac{1}{G}
 \textbf{Core idea:} Generate a group of $G$ responses per prompt, use the group's own statistics as the baseline, and apply PPO-style clipping to stabilize updates.
 \end{infobox}
 
-\textbf{Breaking apart the components:} $G$ is the group size (typically 4--8 responses per prompt). $\hat{A}_i = \frac{r(x, y_i) - \bar{r}_G}{\sigma_G}$ is the normalized advantage---the reward for response $i$ minus the group mean, divided by the group standard deviation. $\rho_i = \frac{\pi_\theta(y_i|x)}{\pi_{\text{old}}(y_i|x)}$ is the importance sampling ratio, clipped in the same way as PPO. $\bar{r}_G = \frac{1}{G}\sum_{j=1}^{G}r(x, y_j)$ is the group mean reward, and $\beta \cdot \text{KL}$ penalizes drift from the reference model.
+\textbf{Breaking apart the components:} $G$ is the group size (typically 4--8 responses per prompt). $\hat{A}_i = \frac{r(x, y_i) - \bar{r}_G}{\sigma_G}$ is the normalized advantage--the reward for response $i$ minus the group mean, divided by the group standard deviation. $\rho_i = \frac{\pi_\theta(y_i|x)}{\pi_{\text{old}}(y_i|x)}$ is the importance sampling ratio, clipped in the same way as PPO. $\bar{r}_G = \frac{1}{G}\sum_{j=1}^{G}r(x, y_j)$ is the group mean reward, and $\beta \cdot \text{KL}$ penalizes drift from the reference model.
 
 That is the full production version. The core insight is simpler: $\hat{A}_i$ replaces PPO's learned value function. Instead of training a separate neural network to predict ``how good should a response to this prompt be?'', GRPO just asks ``how good is this response compared to the other responses in its group?''
 
@@ -124,7 +124,7 @@ $$\bar{r}_G = \frac{1 + 1 + 0 + 0}{4} = 0.5 \qquad \sigma_G = 0.5$$
 \textbf{Step 4: Update the policy.} Attempts 1 and 2 (correct, with step-by-step reasoning) become more likely. Attempts 3 and 4 (errors from skipping steps or miscalculating) become less likely. Over many problems and many groups, the model discovers that detailed reasoning leads to better rewards.
 
 \begin{tipbox}
-\textbf{Why normalization matters.} Dividing by $\sigma_G$ ensures that the advantage magnitude is consistent across prompts. A prompt where all 4 responses are correct (rewards: 1, 1, 1, 1) has $\sigma_G = 0$, so no gradient is produced---the model has nothing to learn from that prompt. A prompt where responses vary widely produces large advantages and strong learning signals. This automatic calibration is one of GRPO's key practical benefits.
+\textbf{Why normalization matters.} Dividing by $\sigma_G$ ensures that the advantage magnitude is consistent across prompts. A prompt where all 4 responses are correct (rewards: 1, 1, 1, 1) has $\sigma_G = 0$, so no gradient is produced--the model has nothing to learn from that prompt. A prompt where responses vary widely produces large advantages and strong learning signals. This automatic calibration is one of GRPO's key practical benefits.
 \end{tipbox}
 
 \subsection{GRPO vs PPO: What Changes}
@@ -222,7 +222,7 @@ The RLOO advantages have \textit{larger magnitude} than the standard ones. Respo
 
 \section{KTO: Kahneman-Tversky Optimization}
 
-All the methods discussed so far---PPO, DPO, GRPO, RLOO, and the algorithms in Chapter 8---require either paired preferences (``Response A is better than Response B'') or a reward model that produces numerical scores. KTO eliminates both requirements. It works with simple binary feedback: each response is labeled independently as ``good'' or ``bad,'' with no comparison to any other response.
+All the methods discussed so far--PPO, DPO, GRPO, RLOO, and the algorithms in Chapter 8--require either paired preferences (``Response A is better than Response B'') or a reward model that produces numerical scores. KTO eliminates both requirements. It works with simple binary feedback: each response is labeled independently as ``good'' or ``bad,'' with no comparison to any other response.
 
 This matters because binary labels are dramatically cheaper to collect. Paired comparisons require showing an annotator two responses to the same prompt and asking which is better. Binary labels only require a single judgment: ``Is this response acceptable?'' This halves annotation cost and is the natural format of much real-world feedback: upvotes, downvotes, thumbs up, star ratings, user retention signals.
 
@@ -239,7 +239,7 @@ $$\mathcal{L}_{\text{KTO}}^{-} = \sigma\!\left(\beta \log \frac{\pi_\theta(y^-|x
 
 Total loss: $\mathcal{L}_{\text{KTO}} = \mathbb{E}[\mathcal{L}_{\text{KTO}}^{+}] + \mathbb{E}[\mathcal{L}_{\text{KTO}}^{-}]$
 
-\textbf{In plain English:} For good responses, increase their probability relative to a reference baseline. For bad responses, decrease their probability. The reference expectation term provides implicit comparison---even without paired data.
+\textbf{In plain English:} For good responses, increase their probability relative to a reference baseline. For bad responses, decrease their probability. The reference expectation term provides implicit comparison--even without paired data.
 \end{infobox}
 
 \textbf{The name explained.} KTO is based on Kahneman and Tversky's prospect theory from behavioral economics: humans evaluate outcomes relative to a reference point, not in absolute terms. A salary of \$100K feels great if your reference is \$70K, but disappointing if your reference is \$130K. KTO applies the same principle: the quality of a response is judged relative to what the reference model would typically produce, not by absolute scoring.
@@ -258,7 +258,7 @@ Total loss: $\mathcal{L}_{\text{KTO}} = \mathbb{E}[\mathcal{L}_{\text{KTO}}^{+}]
 
 \section{IPO: Identity Preference Optimization}
 
-IPO addresses a specific failure mode of DPO: overfitting to the preference data in a way that produces degenerate behavior. Recall from Chapter 7 that DPO's loss function uses a log-sigmoid that pushes the implicit reward gap between winner and loser as large as possible. In theory, this is fine. In practice, the model can exploit this by learning superficial patterns---such as ``longer responses are usually preferred''---and amplifying them to extreme levels.
+IPO addresses a specific failure mode of DPO: overfitting to the preference data in a way that produces degenerate behavior. Recall from Chapter 7 that DPO's loss function uses a log-sigmoid that pushes the implicit reward gap between winner and loser as large as possible. In theory, this is fine. In practice, the model can exploit this by learning superficial patterns--such as ``longer responses are usually preferred''--and amplifying them to extreme levels.
 
 IPO replaces DPO's log-sigmoid loss with a squared loss that has an explicit target gap. Instead of ``make the winner as much better as possible,'' IPO says ``make the winner better by exactly $1/\beta$.''
 
@@ -271,10 +271,10 @@ $$\mathcal{L}_{\text{IPO}} = \mathbb{E}\!\left[\left(\log \frac{\pi_\theta(y_w|x
 
 $$\mathcal{L}_{\text{DPO}} = -\mathbb{E}\!\left[\log \sigma\!\left(\beta \log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \beta \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\right)\right]$$
 
-\textbf{The key difference:} DPO uses log-sigmoid (unbounded optimization---push the gap as large as possible). IPO uses squared error with a target gap of $1/\beta$ (bounded optimization---stop once the gap is right).
+\textbf{The key difference:} DPO uses log-sigmoid (unbounded optimization--push the gap as large as possible). IPO uses squared error with a target gap of $1/\beta$ (bounded optimization--stop once the gap is right).
 \end{infobox}
 
-\textbf{Why the target gap helps.} Think of a sports analogy. DPO is like a coach who says ``win by as much as possible''---the team runs up the score, which wastes energy and can lead to reckless play. IPO is like a coach who says ``win by exactly 10 points''---the team plays efficiently and stops over-optimizing once the margin is achieved. The explicit gap $1/\beta$ prevents the model from over-fitting to easy examples or amplifying spurious correlations in the preference data.
+\textbf{Why the target gap helps.} Think of a sports analogy. DPO is like a coach who says ``win by as much as possible''--the team runs up the score, which wastes energy and can lead to reckless play. IPO is like a coach who says ``win by exactly 10 points''--the team plays efficiently and stops over-optimizing once the margin is achieved. The explicit gap $1/\beta$ prevents the model from over-fitting to easy examples or amplifying spurious correlations in the preference data.
 
 \begin{tipbox}
 \textbf{When to choose IPO over DPO}
@@ -300,7 +300,7 @@ Where $\text{odds}(y) = \frac{\pi_\theta(y|x)}{1 - \pi_\theta(y|x)}$ and $\lambd
 \textbf{In plain English:} The SFT term teaches the model to produce good responses. The preference term teaches it to produce good responses \textit{more than} bad ones. Both happen simultaneously in every training step.
 \end{infobox}
 
-\textbf{Why odds ratios?} The standard DPO loss compares log probabilities between the policy and reference model. ORPO instead compares the \textit{odds} of the winner and loser under the current policy alone. The odds ratio measures how much more likely the model is to produce the winner than the loser, accounting for the fact that both probabilities must sum with everything else the model can generate. This formulation does not require a reference model at all, which means ORPO needs only one model in memory---the lowest of any method in this chapter.
+\textbf{Why odds ratios?} The standard DPO loss compares log probabilities between the policy and reference model. ORPO instead compares the \textit{odds} of the winner and loser under the current policy alone. The odds ratio measures how much more likely the model is to produce the winner than the loser, accounting for the fact that both probabilities must sum with everything else the model can generate. This formulation does not require a reference model at all, which means ORPO needs only one model in memory--the lowest of any method in this chapter.
 
 \textbf{No reference model.} This is ORPO's most distinctive feature. DPO, KTO, and IPO all require keeping a frozen copy of the SFT model as $\pi_{\text{ref}}$. ORPO's odds ratio formulation makes the reference unnecessary because the SFT component of the loss already prevents the policy from drifting into degenerate territory. This saves significant memory, especially for large models.
 

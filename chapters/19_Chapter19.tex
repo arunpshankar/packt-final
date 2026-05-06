@@ -19,7 +19,7 @@ Nineteen chapters. Let us look at what you now know.
 
 Every chapter built on one idea: \textit{reward signals can teach models behaviors that supervised learning cannot}.
 
-SFT teaches format and style from examples. RL teaches goal-directedness from outcomes. The combination --- SFT to bootstrap, RL to align --- is what makes modern LLMs genuinely useful rather than merely statistically plausible.
+SFT teaches format and style from examples. RL teaches goal-directedness from outcomes. The combination -- SFT to bootstrap, RL to align -- is what makes modern LLMs genuinely useful rather than merely statistically plausible.
 \end{infobox}
 
 \section{Where the Field Is Going}
@@ -28,7 +28,7 @@ RL for LLMs is moving fast. Several directions appear durable based on the traje
 
 \subsection{Verifiable Rewards at Scale}
 
-The biggest bottleneck in RL training is reward signal quality. Human annotation is slow and expensive. Reward models trained on human data overfit and get hacked. The path of least resistance is verifiable rewards --- rewards derived from automated oracles that cannot be fooled.
+The biggest bottleneck in RL training is reward signal quality. Human annotation is slow and expensive. Reward models trained on human data overfit and get hacked. The path of least resistance is verifiable rewards -- rewards derived from automated oracles that cannot be fooled.
 
 Math and code are already solved: symbolic answer checkers and test suite execution provide perfect verifiers. The next frontier is extending verifiable rewards to less structured domains: fact-checking with retrieval (did the model cite a real paper?), logical consistency (are the model's claims mutually consistent?), and multi-step reasoning correctness (is every step in the chain-of-thought valid?).
 
@@ -64,7 +64,7 @@ You now have the conceptual toolkit. The gap between understanding and productio
 \begin{enumerate}
 \item Start with DPO (simpler than PPO) on a small task you care about
 \item Use the companion notebooks from Chapter 4 as your starting point
-\item Focus on data quality over algorithm complexity --- 10,000 excellent preference pairs outperform 100,000 mediocre ones
+\item Focus on data quality over algorithm complexity -- 10,000 excellent preference pairs outperform 100,000 mediocre ones
 \item Monitor human evaluation on a fixed eval set, not just automated benchmarks
 \item Iterate quickly with a 7B model before scaling to 70B
 \end{enumerate}
@@ -72,7 +72,7 @@ You now have the conceptual toolkit. The gap between understanding and productio
 \textbf{If you are a researcher:}
 \begin{enumerate}
 \item Read the original PPO, DPO, GRPO, and DeepSeek-R1 papers for the precise mathematical details
-\item Implement GRPO from scratch once --- the implementation exercise reveals details that reading cannot
+\item Implement GRPO from scratch once -- the implementation exercise reveals details that reading cannot
 \item Explore the open problems: better credit assignment in multi-step tasks, verifiable rewards for open-ended language, sample-efficient reward model updates
 \item Share your findings: the field advances through open publication
 \end{enumerate}
@@ -80,9 +80,9 @@ You now have the conceptual toolkit. The gap between understanding and productio
 \textbf{If you are building a product:}
 \begin{enumerate}
 \item Choose the recipe that matches your primary use case (Chapter 17)
-\item Budget for evaluation infrastructure before training infrastructure --- you cannot improve what you do not measure
-\item Plan for retraining from the start --- RL-trained models drift and require updates
-\item Constitutional AI (Chapter 14) is a practical safety layer even if you do not train with RLAIF --- use it for agent deployments
+\item Budget for evaluation infrastructure before training infrastructure -- you cannot improve what you do not measure
+\item Plan for retraining from the start -- RL-trained models drift and require updates
+\item Constitutional AI (Chapter 14) is a practical safety layer even if you do not train with RLAIF -- use it for agent deployments
 \end{enumerate}
 
 \section{The Companion Code}
@@ -105,9 +105,9 @@ Every notebook runs on free Colab T4 GPUs (or local hardware). All examples use 
 
 \section{A Final Word}
 
-The mathematics in this book is real. Policy gradients, KL divergence, value function estimation, Pareto frontiers --- these are not metaphors or simplifications. They are the actual machinery behind the most capable language models in the world.
+The mathematics in this book is real. Policy gradients, KL divergence, value function estimation, Pareto frontiers -- these are not metaphors or simplifications. They are the actual machinery behind the most capable language models in the world.
 
-But the mathematics is also, ultimately, in service of a practical goal: building systems that help people do things they could not do alone. The alignment gap (Chapter 2) is not just a technical problem --- it is the question of how we build AI that reliably does what we actually want, not just what we said we wanted when we wrote the loss function.
+But the mathematics is also, ultimately, in service of a practical goal: building systems that help people do things they could not do alone. The alignment gap (Chapter 2) is not just a technical problem -- it is the question of how we build AI that reliably does what we actually want, not just what we said we wanted when we wrote the loss function.
 
 RL is the best tool we have for closing that gap. It is also a humbling one: every reward function is an imperfect specification of what we value, and every trained model is a reminder that what you measure is what you get.
 

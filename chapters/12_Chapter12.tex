@@ -4,15 +4,15 @@
 
 \section{The Paradigm Shift: Skipping SFT}
 
-The standard pipeline for building a capable LLM has three stages: pretrain on text, supervised fine-tune on demonstrations (Chapter 5), then align with RL (Chapters 6--10). Every major model through 2023---ChatGPT, Claude, Llama-Chat---followed this recipe. Supervised fine-tuning was considered essential: you needed to show the model thousands of examples of good behavior before RL could refine it further.
+The standard pipeline for building a capable LLM has three stages: pretrain on text, supervised fine-tune on demonstrations (Chapter 5), then align with RL (Chapters 6--10). Every major model through 2023--ChatGPT, Claude, Llama-Chat--followed this recipe. Supervised fine-tuning was considered essential: you needed to show the model thousands of examples of good behavior before RL could refine it further.
 
 In early 2024, DeepSeek challenged this assumption. Their model, DeepSeek-R1, achieved state-of-the-art reasoning performance with a radically simplified pipeline: \textbf{Pretrain $\to$ RL}. That is it. No supervised fine-tuning. No human-written demonstrations of step-by-step reasoning. Just a pretrained model, a reward signal (``did you get the right answer?''), and GRPO.
 
 \begin{tipbox}
-The result was not merely competitive with SFT-based approaches---it surpassed them. DeepSeek-R1 discovered reasoning strategies that no human had explicitly taught it, including elaborate self-verification, multi-path problem solving, and spontaneous chain-of-thought. The model figured out that ``showing its work'' leads to better final answers, entirely on its own.
+The result was not merely competitive with SFT-based approaches--it surpassed them. DeepSeek-R1 discovered reasoning strategies that no human had explicitly taught it, including elaborate self-verification, multi-path problem solving, and spontaneous chain-of-thought. The model figured out that ``showing its work'' leads to better final answers, entirely on its own.
 \end{tipbox}
 
-\textbf{Why does skipping SFT work?} Supervised fine-tuning teaches by imitation: the model sees thousands of correct solutions and learns to reproduce their patterns. This is effective but inherently bounded---the model can only be as good as the examples it trains on, and it learns surface patterns as much as deep understanding. RL, by contrast, teaches by exploration: the model generates its own solutions, receives feedback (correct or incorrect), and discovers strategies that maximize reward. There is no ceiling imposed by human examples because the model is free to find approaches humans would not have written.
+\textbf{Why does skipping SFT work?} Supervised fine-tuning teaches by imitation: the model sees thousands of correct solutions and learns to reproduce their patterns. This is effective but inherently bounded--the model can only be as good as the examples it trains on, and it learns surface patterns as much as deep understanding. RL, by contrast, teaches by exploration: the model generates its own solutions, receives feedback (correct or incorrect), and discovers strategies that maximize reward. There is no ceiling imposed by human examples because the model is free to find approaches humans would not have written.
 
 The risk is obvious: without SFT to provide a ``warm start,'' the model begins RL from a pretrained checkpoint that can generate text but has no concept of instruction following, structured reasoning, or helpful behavior. The early stages of training are chaotic. But DeepSeek showed that with enough compute and the right algorithm, the model bootstraps these capabilities from scratch.
 
@@ -24,12 +24,12 @@ The recipe has three ingredients: the GRPO algorithm (Chapter 10), simple binary
 
 Chapter 10 derived GRPO's objective function and walked through its mechanics: generate a group of responses per prompt, score each with a reward function, compute normalized advantages using the group mean and standard deviation, and update the policy with PPO-style clipping and a KL penalty.
 
-DeepSeek's application of GRPO used groups of $G = 8$ to $16$ responses per prompt. The reward was binary: $+1$ for a correct final answer, $0$ for an incorrect one. No reward model was trained. No human preferences were collected. The entire reward signal came from deterministic verifiers---math checkers that compared the model's answer against ground truth, and code execution environments that ran the model's programs against test cases.
+DeepSeek's application of GRPO used groups of $G = 8$ to $16$ responses per prompt. The reward was binary: $+1$ for a correct final answer, $0$ for an incorrect one. No reward model was trained. No human preferences were collected. The entire reward signal came from deterministic verifiers--math checkers that compared the model's answer against ground truth, and code execution environments that ran the model's programs against test cases.
 
 \begin{infobox}
 \textbf{Why binary rewards are enough.}
 
-It seems counterintuitive that a reward of just 0 or 1 can teach sophisticated reasoning. The insight is that GRPO does not need rich reward signals---it needs \textit{variance within each group}. If 3 out of 8 responses are correct and 5 are wrong, the correct ones get positive advantage and the wrong ones get negative advantage. The model then asks: ``What did the correct responses do differently?'' Over millions of problems and groups, the pattern that emerges is consistent: correct responses tend to show their work, break problems into steps, and verify intermediate results. The model reinforces these behaviors without anyone explicitly defining or rewarding them.
+It seems counterintuitive that a reward of just 0 or 1 can teach sophisticated reasoning. The insight is that GRPO does not need rich reward signals--it needs \textit{variance within each group}. If 3 out of 8 responses are correct and 5 are wrong, the correct ones get positive advantage and the wrong ones get negative advantage. The model then asks: ``What did the correct responses do differently?'' Over millions of problems and groups, the pattern that emerges is consistent: correct responses tend to show their work, break problems into steps, and verify intermediate results. The model reinforces these behaviors without anyone explicitly defining or rewarding them.
 \end{infobox}
 
 \subsection{Curriculum Learning: Easy to Hard}
@@ -76,7 +76,7 @@ Consider a model solving a math problem with two strategies:
 
 \textbf{Strategy 2: Step-by-step reasoning.} ``Let me break this down\ldots\ [50 tokens of reasoning]\ldots\ Therefore, the answer is 42.'' Accuracy: 85\%.
 
-From RL's perspective, Strategy 1 produces reward 0 sixty percent of the time. Strategy 2 produces reward 1 eighty-five percent of the time. The policy gradient strongly reinforces Strategy 2. Over many training steps, the model shifts probability mass from short, unreliable responses toward longer, more reliable reasoning chains. The key is that RL sees the \textit{observed} rewards---not the prior probability of generating each strategy. A strategy that was initially improbable but consistently gets high rewards will be strongly reinforced until it becomes the model's default behavior.
+From RL's perspective, Strategy 1 produces reward 0 sixty percent of the time. Strategy 2 produces reward 1 eighty-five percent of the time. The policy gradient strongly reinforces Strategy 2. Over many training steps, the model shifts probability mass from short, unreliable responses toward longer, more reliable reasoning chains. The key is that RL sees the \textit{observed} rewards--not the prior probability of generating each strategy. A strategy that was initially improbable but consistently gets high rewards will be strongly reinforced until it becomes the model's default behavior.
 
 \subsection{What the Model Discovers}
 
@@ -89,7 +89,7 @@ As training progresses, the model spontaneously developed several reasoning patt
 
 \textbf{Self-verification:} Checking its own work, sometimes with phrases like ``Wait, let me verify this\ldots'' This emerges because catching errors before the final answer increases accuracy.
 
-\textbf{Multiple solution paths:} Solving a problem two different ways and comparing results. This emerges because agreement between two methods strongly predicts correctness---a strategy few humans would have explicitly demonstrated in training data.
+\textbf{Multiple solution paths:} Solving a problem two different ways and comparing results. This emerges because agreement between two methods strongly predicts correctness--a strategy few humans would have explicitly demonstrated in training data.
 
 \textbf{Error recovery:} Recognizing a mistake mid-solution and backtracking to try a different approach. This emerges because models that can recover from dead ends get more problems right than models that commit to their first approach.
 
@@ -100,11 +100,11 @@ All of these emerged because they increase the probability of correct final answ
 
 DeepSeek-R1's training showed four distinct phases, with a sharp phase transition between phases 2 and 3. Understanding these phases is important for practitioners because it sets expectations: the model will appear to make no progress for thousands of steps before a sudden breakthrough.
 
-\textbf{Phase 1: Chaos (Steps 0--1,000).} Model outputs are incoherent---random text with no mathematical structure. Rewards are near zero on all but the simplest problems. The model is exploring randomly. This phase is discouraging but unavoidable: the model must generate enough diverse outputs to stumble on patterns that work.
+\textbf{Phase 1: Chaos (Steps 0--1,000).} Model outputs are incoherent--random text with no mathematical structure. Rewards are near zero on all but the simplest problems. The model is exploring randomly. This phase is discouraging but unavoidable: the model must generate enough diverse outputs to stumble on patterns that work.
 
-\textbf{Phase 2: Structure Discovery (Steps 1,000--5,000).} The model learns to format outputs as problem-then-solution. It begins attempting calculations and produces recognizable (though often wrong) mathematical expressions. Accuracy reaches 10--20\%. The model has learned \textit{what kind of thing} to output but not \textit{how} to get it right. Responses are short---typically one or two lines---because the model has not yet discovered that longer reasoning helps.
+\textbf{Phase 2: Structure Discovery (Steps 1,000--5,000).} The model learns to format outputs as problem-then-solution. It begins attempting calculations and produces recognizable (though often wrong) mathematical expressions. Accuracy reaches 10--20\%. The model has learned \textit{what kind of thing} to output but not \textit{how} to get it right. Responses are short--typically one or two lines--because the model has not yet discovered that longer reasoning helps.
 
-\textbf{Phase 3: The ``Aha!'' Moment (Steps 5,000--8,000).} This is the critical phase transition. Intermediate reasoning steps appear \textit{suddenly}---not through gradual lengthening of responses but as an abrupt qualitative change. Accuracy jumps from roughly 20\% to 55\% over a few hundred steps. Average response length doubles or triples. The model has discovered the length-quality correlation: detailed reasoning leads to correct answers.
+\textbf{Phase 3: The ``Aha!'' Moment (Steps 5,000--8,000).} This is the critical phase transition. Intermediate reasoning steps appear \textit{suddenly}--not through gradual lengthening of responses but as an abrupt qualitative change. Accuracy jumps from roughly 20\% to 55\% over a few hundred steps. Average response length doubles or triples. The model has discovered the length-quality correlation: detailed reasoning leads to correct answers.
 
 \textbf{Phase 4: Refinement (Steps 8,000+).} Reasoning becomes more sophisticated. Self-correction appears (``Wait, that doesn't seem right\ldots''). Multiple solution strategies emerge for the same problem type. Accuracy continues climbing from 55\% toward 85\%+, but the improvement is now gradual rather than sudden. The model is optimizing \textit{how} to reason, not discovering \textit{that} reasoning helps.
 
@@ -117,13 +117,13 @@ RL training shows the same phase transition dynamics.
 
 \textbf{Before the aha:} The model tries short responses, gets low rewards, incrementally tries slightly longer ones, still gets low rewards because the reasoning is not yet coherent enough to improve accuracy. There is no gradient signal favoring length, because incoherent length does not help.
 
-\textbf{At the aha:} The model generates its first coherent multi-step reasoning chain---possibly by chance---and gets a high reward. The policy gradient strongly reinforces this pattern. Crucially, all similar reasoning structures get boosted simultaneously, because they share token-level patterns (``Step 1:'', ``Therefore,'', ``Let me check\ldots''). This creates a cascade: one successful reasoning chain unlocks many, because the model learns to produce the \textit{structural markers} of reasoning, and those markers improve accuracy across many different problems at once.
+\textbf{At the aha:} The model generates its first coherent multi-step reasoning chain--possibly by chance--and gets a high reward. The policy gradient strongly reinforces this pattern. Crucially, all similar reasoning structures get boosted simultaneously, because they share token-level patterns (``Step 1:'', ``Therefore,'', ``Let me check\ldots''). This creates a cascade: one successful reasoning chain unlocks many, because the model learns to produce the \textit{structural markers} of reasoning, and those markers improve accuracy across many different problems at once.
 
-\textbf{After the aha:} The model now ``knows'' that reasoning helps and explores how to reason \textit{better}---more steps, cleaner logic, self-verification. Improvement becomes steady rather than explosive.
+\textbf{After the aha:} The model now ``knows'' that reasoning helps and explores how to reason \textit{better}--more steps, cleaner logic, self-verification. Improvement becomes steady rather than explosive.
 \end{infobox}
 
 \begin{tipbox}
-\textbf{Implications for practitioners.} If you are training with GRPO and see no improvement for thousands of steps, do not panic. The ``aha!'' moment is real and well-documented. Monitor average response length alongside accuracy: a sudden increase in response length (without explicit encouragement) is a leading indicator that the phase transition is beginning. If response length remains flat after 10,000+ steps, something is wrong---check your reward signal, group size, and curriculum difficulty.
+\textbf{Implications for practitioners.} If you are training with GRPO and see no improvement for thousands of steps, do not panic. The ``aha!'' moment is real and well-documented. Monitor average response length alongside accuracy: a sudden increase in response length (without explicit encouragement) is a leading indicator that the phase transition is beginning. If response length remains flat after 10,000+ steps, something is wrong--check your reward signal, group size, and curriculum difficulty.
 \end{tipbox}
 
 \section{Three Types of Chain-of-Thought}
@@ -157,12 +157,12 @@ RL-discovered CoT & 85--90\% & High (one-time RL training) \\
 \end{tabular}
 \end{center}
 
-\textbf{Why RL-discovered CoT wins.} Fine-tuned CoT is constrained by human intuitions about how to solve problems. Humans write solutions in a particular style, use familiar strategies, and follow conventions. RL-discovered CoT has no such constraints. It discovers whatever reasoning patterns actually maximize reward, including unconventional ones. Models trained with GRPO often discover that solving a problem multiple ways and comparing results is highly effective---a meta-strategy that few humans would have explicitly demonstrated in training data.
+\textbf{Why RL-discovered CoT wins.} Fine-tuned CoT is constrained by human intuitions about how to solve problems. Humans write solutions in a particular style, use familiar strategies, and follow conventions. RL-discovered CoT has no such constraints. It discovers whatever reasoning patterns actually maximize reward, including unconventional ones. Models trained with GRPO often discover that solving a problem multiple ways and comparing results is highly effective--a meta-strategy that few humans would have explicitly demonstrated in training data.
 
 \textbf{The interpretability trade-off.} RL-discovered reasoning is often \textit{less} interpretable than human-written chains. The model may take detours, use unusual notation, or arrive at correct answers through reasoning paths that are hard for humans to follow. This is fine when correctness is verifiable (math, code), but can be problematic for tasks where humans need to audit the reasoning (medical diagnosis, legal analysis). For such tasks, fine-tuned CoT with human-written traces may be preferable despite lower peak performance.
 
 \begin{tipbox}
-\textbf{Cost comparison at scale.} Prompted CoT costs roughly 7--8$\times$ more per query than no-CoT (150 tokens vs 20 tokens). RL-discovered CoT has the same per-query cost as prompted CoT, but adds a one-time training cost of \$100K--\$1M. At 100 million queries, the training cost amortizes to less than \$0.01 per query---negligible compared to inference costs. For high-volume applications, RL-discovered CoT is the most cost-effective approach.
+\textbf{Cost comparison at scale.} Prompted CoT costs roughly 7--8$\times$ more per query than no-CoT (150 tokens vs 20 tokens). RL-discovered CoT has the same per-query cost as prompted CoT, but adds a one-time training cost of \$100K--\$1M. At 100 million queries, the training cost amortizes to less than \$0.01 per query--negligible compared to inference costs. For high-volume applications, RL-discovered CoT is the most cost-effective approach.
 \end{tipbox}
 
 \section{Scaling Laws for Reasoning}
@@ -186,7 +186,7 @@ The difference arises because reasoning is a \textit{skill} that can be learned 
 \toprule
 \textbf{RL Compute} & \textbf{MATH Accuracy} & \textbf{Cost} & \textbf{Gain per Dollar} \\
 \midrule
-$1\times$ (baseline) & 45\% & \$10K & --- \\
+$1\times$ (baseline) & 45\% & \$10K & -- \\
 $10\times$ & 68\% & \$100K & 0.26 points / \$1K \\
 $100\times$ & 82\% & \$1M & 0.016 points / \$1K \\
 $1{,}000\times$ & 89\% & \$10M & 0.0008 points / \$1K \\
@@ -200,7 +200,7 @@ The $1\times$ to $10\times$ range delivers the best value: a 23-point accuracy g
 
 \subsection{When Pure RL Works}
 
-The DeepSeek recipe---skip SFT, train with GRPO and verifiers---works well under specific conditions.
+The DeepSeek recipe--skip SFT, train with GRPO and verifiers--works well under specific conditions.
 
 \textbf{Objective rewards.} The task must have a deterministic or near-deterministic way to check correctness: math verification, code execution, formal proofs, factual question answering with known answers. Without reliable rewards, GRPO's group baselines are noise.
 
@@ -212,7 +212,7 @@ The DeepSeek recipe---skip SFT, train with GRPO and verifiers---works well under
 
 For many practical applications, the ``best of both worlds'' approach is preferable: minimal SFT for basic instruction following, then aggressive RL for capability development.
 
-\textbf{Subjective tasks.} Creative writing, style matching, tone control---there is no verifier for ``is this essay well-written?'' These tasks need human preferences (Chapters 6--7) or at minimum some SFT demonstrations to define what ``good'' looks like.
+\textbf{Subjective tasks.} Creative writing, style matching, tone control--there is no verifier for ``is this essay well-written?'' These tasks need human preferences (Chapters 6--7) or at minimum some SFT demonstrations to define what ``good'' looks like.
 
 \textbf{Limited compute.} If you cannot afford the chaotic early phases of pure RL, SFT provides a warm start that gets the model to a reasonable baseline quickly, and RL refines from there. This is the practical choice for most teams.
 
@@ -240,19 +240,19 @@ Key contribution & Proved SFT is unnecessary for reasoning & Demonstrated test-t
 \end{center}
 
 \begin{tipbox}
-Both models demonstrate a fundamental insight: investing computation into learning \textit{how to reason}---whether at training time (DeepSeek's approach with GRPO) or inference time (o1's approach with test-time compute, covered in Chapter 13)---produces models that can reason rather than merely pattern-match. DeepSeek-R1's specific contribution is showing that the expensive human annotation step (writing thousands of step-by-step solutions for SFT) can be eliminated entirely. The model discovers reasoning from reward alone.
+Both models demonstrate a fundamental insight: investing computation into learning \textit{how to reason}--whether at training time (DeepSeek's approach with GRPO) or inference time (o1's approach with test-time compute, covered in Chapter 13)--produces models that can reason rather than merely pattern-match. DeepSeek-R1's specific contribution is showing that the expensive human annotation step (writing thousands of step-by-step solutions for SFT) can be eliminated entirely. The model discovers reasoning from reward alone.
 \end{tipbox}
 
 \begin{infobox}
 \textbf{The DeepSeek recipe in context.}
 
-\textbf{Algorithm:} GRPO with groups of 8--16 (Chapter 10). No critic, no reward model---just the policy, a reference model, and a verifier.
+\textbf{Algorithm:} GRPO with groups of 8--16 (Chapter 10). No critic, no reward model--just the policy, a reference model, and a verifier.
 
 \textbf{Reward:} Binary correct/incorrect from deterministic verifiers (Chapter 11). No learned scorer to hack.
 
 \textbf{Curriculum:} Easy $\to$ medium $\to$ hard problems. Ensures useful variance in GRPO groups at every stage.
 
-\textbf{What emerges:} Chain-of-thought reasoning, self-verification, multi-path problem solving, error recovery---all without a single human demonstration.
+\textbf{What emerges:} Chain-of-thought reasoning, self-verification, multi-path problem solving, error recovery--all without a single human demonstration.
 
 \textbf{What it costs:} Roughly 3$\times$ standard pretraining compute. No annotation cost.
 
@@ -261,10 +261,10 @@ Chapter 13 covers what happens \textit{after} training: how test-time compute te
 
 
 \begin{tipbox}
-\textbf{Companion notebooks.} Open each in Colab:
+\textbf{Companion notebooks.} Both notebooks are in \texttt{code/notebooks/part3\_advanced/} in the repository at \texttt{github.com/arunpshankar/packt-final}. Replace \texttt{github.com} with \texttt{githubtocolab.com} in the URL to open directly in Colab.
 \begin{itemize}
-  \item \texttt{12a_reasoning_grpo_concepts.ipynb} --- \url{https://colab.research.google.com/github/arunpshankar/packt-final/blob/main/code/notebooks/part3_advanced/12a_reasoning_grpo_concepts.ipynb}
-  \item \texttt{12b_reasoning_grpo_deepseek.ipynb} --- \url{https://colab.research.google.com/github/arunpshankar/packt-final/blob/main/code/notebooks/part3_advanced/12b_reasoning_grpo_deepseek.ipynb}
+  \item \texttt{12a\_reasoning\_grpo\_concepts.ipynb}
+  \item \texttt{12b\_reasoning\_grpo\_deepseek.ipynb}
 \end{itemize}
 \end{tipbox}
 

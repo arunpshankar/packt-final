@@ -49,10 +49,13 @@ CHAPTERS = [
 ]
 
 def run_pdflatex(texfile, cwd):
+    env = os.environ.copy()
+    env["PATH"] = os.path.expanduser("~/bin") + ":" + env.get("PATH", "")
     return subprocess.run(
-        ["pdflatex", "-interaction=nonstopmode", texfile],
+        ["pdflatex", "-interaction=nonstopmode", "-shell-escape", texfile],
         capture_output=True,
         cwd=cwd,
+        env=env,
     )
 
 def clean(base, cwd):

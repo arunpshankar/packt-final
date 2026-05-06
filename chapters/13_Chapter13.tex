@@ -6,7 +6,7 @@
 
 Every chapter so far has focused on making models better during \textit{training}: supervised fine-tuning teaches basic competence, RLHF and DPO align with preferences, GRPO discovers reasoning strategies. Once training is done, the model is fixed. At inference time, it generates one response and returns it. The quality of that response is entirely determined by what the model learned during training.
 
-Test-time compute flips this assumption. Instead of generating one response, you spend extra computation \textit{at inference time} to produce a better answer. Generate multiple candidates and pick the best one. Have the model critique and revise its own output. Explore multiple reasoning paths in parallel and select the most promising one. The model's weights do not change---you are trading compute for quality on a per-query basis.
+Test-time compute flips this assumption. Instead of generating one response, you spend extra computation \textit{at inference time} to produce a better answer. Generate multiple candidates and pick the best one. Have the model critique and revise its own output. Explore multiple reasoning paths in parallel and select the most promising one. The model's weights do not change--you are trading compute for quality on a per-query basis.
 
 This is the idea behind OpenAI's o1 (Chapter 12), and it applies broadly to any model trained with any method from this book. A model trained with GRPO can be made even better at inference time by generating multiple solutions and selecting the best one with a PRM (Chapter 11). A model trained with DPO can be improved by self-correction loops. The techniques in this chapter are orthogonal to training: they work on top of whatever the model has already learned.
 
@@ -32,19 +32,19 @@ Before covering test-time scaling strategies, it helps to review how a language 
 
 $$P(\text{token}_i) = \frac{\exp(\text{logit}_i / T)}{\sum_j \exp(\text{logit}_j / T)}$$
 
-Low temperature ($T = 0.1$) concentrates probability on the top tokens---nearly deterministic. High temperature ($T = 2.0$) flattens the distribution---more random and diverse. Medium temperature ($T = 0.7$--$1.0$) is the standard operating range for most tasks.
+Low temperature ($T = 0.1$) concentrates probability on the top tokens--nearly deterministic. High temperature ($T = 2.0$) flattens the distribution--more random and diverse. Medium temperature ($T = 0.7$--$1.0$) is the standard operating range for most tasks.
 
 \textbf{Top-$k$ sampling} restricts the distribution to the $k$ highest-probability tokens, then samples from that truncated set. This prevents the model from selecting extremely unlikely tokens while preserving some diversity. Typical values are $k = 40$--$100$.
 
 \textbf{Top-$p$ (nucleus) sampling} restricts the distribution to the smallest set of tokens whose cumulative probability exceeds $p$. Unlike top-$k$, this adapts automatically: when the model is confident (one token dominates), the set is small; when the model is uncertain, the set is larger. Typical values are $p = 0.9$--$0.95$.
 
 \begin{tipbox}
-\textbf{Temperature for test-time scaling.} All the strategies in this chapter---best-of-N, self-consistency, tree search---require generating \textit{multiple diverse} outputs. Greedy decoding produces the same output every time, so it is useless for these methods. You need sampling with moderate temperature ($T = 0.6$--$1.0$) to get diversity. Too low and all candidates are identical; too high and they are incoherent. The right temperature balances diversity (different reasoning paths) against quality (each path is coherent).
+\textbf{Temperature for test-time scaling.} All the strategies in this chapter--best-of-N, self-consistency, tree search--require generating \textit{multiple diverse} outputs. Greedy decoding produces the same output every time, so it is useless for these methods. You need sampling with moderate temperature ($T = 0.6$--$1.0$) to get diversity. Too low and all candidates are identical; too high and they are incoherent. The right temperature balances diversity (different reasoning paths) against quality (each path is coherent).
 \end{tipbox}
 
 \section{Best-of-N and Rejection Sampling}
 
-The simplest test-time scaling strategy is to generate $N$ responses and keep only the best one. This requires a scoring function---a reward model (Chapter 9), a PRM (Chapter 11), a verifier, or even just majority voting.
+The simplest test-time scaling strategy is to generate $N$ responses and keep only the best one. This requires a scoring function--a reward model (Chapter 9), a PRM (Chapter 11), a verifier, or even just majority voting.
 
 \subsection{Best-of-N with a Scorer}
 
@@ -70,7 +70,7 @@ $p$ & $N=1$ & $N=3$ & $N=5$ & $N=10$ & $N=20$ \\
 Even a weak model ($p = 10\%$) can produce good outputs reliably with enough candidates. The cost is $N \times$ normal inference, so there is a direct quality--cost trade-off.
 \end{infobox}
 
-\textbf{Choosing the scorer matters enormously.} Chapter 11 showed that PRM-scored best-of-100 achieves 72.2\% on the MATH benchmark, versus 58.3\% for ORM-scored best-of-100, versus 42.0\% for greedy decoding. The model is the same in all three cases---the only difference is how candidates are ranked. Investing in a good scorer (especially a PRM for reasoning tasks) amplifies the value of every candidate you generate.
+\textbf{Choosing the scorer matters enormously.} Chapter 11 showed that PRM-scored best-of-100 achieves 72.2\% on the MATH benchmark, versus 58.3\% for ORM-scored best-of-100, versus 42.0\% for greedy decoding. The model is the same in all three cases--the only difference is how candidates are ranked. Investing in a good scorer (especially a PRM for reasoning tasks) amplifies the value of every candidate you generate.
 
 \subsection{Rejection Sampling}
 
@@ -85,7 +85,7 @@ Expected number of attempts: $\mathbb{E}[\text{attempts}] = \frac{1}{p_{\text{ac
 
 With $p_{\text{accept}} = 0.4$: expect 2.5 attempts on average. With $N = 5$ max attempts: 92\% chance of finding an acceptable response.
 
-\textbf{The threshold trade-off:} Strict threshold ($\tau$ high) means higher quality but more rejections---expensive. Lenient threshold ($\tau$ low) is faster but accepts mediocre responses. Set $\tau$ based on your cost-quality budget and latency constraints.
+\textbf{The threshold trade-off:} Strict threshold ($\tau$ high) means higher quality but more rejections--expensive. Lenient threshold ($\tau$ low) is faster but accepts mediocre responses. Set $\tau$ based on your cost-quality budget and latency constraints.
 \end{infobox}
 
 Rejection sampling is more latency-friendly than full best-of-N because it can return the first good candidate without generating all $N$. On average, it generates fewer candidates. But it requires a calibrated scorer that produces meaningful absolute scores (not just relative rankings), which is harder to build than a ranker.
@@ -96,12 +96,12 @@ Self-consistency is best-of-N without a learned scorer. Generate $N$ solutions, 
 
 \textbf{Example.} Problem: ``If apples cost \$2 each and oranges cost \$3 each, and you buy 4 apples and 3 oranges, what is the total?''
 
-Generate 5 solutions. Three arrive at \$17 through correct reasoning ($4 \times 2 + 3 \times 3 = 17$). One gets \$35 (incorrectly averaging prices). One gets \$17.50 (different error). Majority vote: \$17 wins with 3 votes. The correct answer emerges because the correct reasoning path is more robust---there are many ways to get it wrong, but essentially one way to get it right.
+Generate 5 solutions. Three arrive at \$17 through correct reasoning ($4 \times 2 + 3 \times 3 = 17$). One gets \$35 (incorrectly averaging prices). One gets \$17.50 (different error). Majority vote: \$17 wins with 3 votes. The correct answer emerges because the correct reasoning path is more robust--there are many ways to get it wrong, but essentially one way to get it right.
 
 \begin{tipbox}
 \textbf{When self-consistency works and when it does not.}
 
-\textbf{Works well for:} Math problems, multiple-choice questions, logic puzzles, code generation (run tests, majority wins)---any task with a single correct answer that can be extracted and compared.
+\textbf{Works well for:} Math problems, multiple-choice questions, logic puzzles, code generation (run tests, majority wins)--any task with a single correct answer that can be extracted and compared.
 
 \textbf{Does not work for:} Creative writing (no single correct answer), open-ended questions, subjective tasks, or problems where the model consistently makes the same error (majority vote amplifies systematic biases).
 
@@ -128,9 +128,9 @@ Best-of-N generates candidates independently. Self-correction generates candidat
 Total cost: 2--4$\times$ normal inference (each iteration requires generation + critique).
 \end{infobox}
 
-\textbf{When self-correction works.} The model must be better at \textit{verification} than \textit{generation}---that is, it must be able to recognize errors it could not avoid making in the first place. This is common in math (checking a solution is easier than finding it), code (running tests is easier than writing bug-free code), and factual questions (looking up an answer is easier than recalling it perfectly).
+\textbf{When self-correction works.} The model must be better at \textit{verification} than \textit{generation}--that is, it must be able to recognize errors it could not avoid making in the first place. This is common in math (checking a solution is easier than finding it), code (running tests is easier than writing bug-free code), and factual questions (looking up an answer is easier than recalling it perfectly).
 
-\textbf{When self-correction fails.} Three failure modes are common. First, the model's critique ability may be poor---it cannot identify real errors, or it hallucinates errors that do not exist, leading to ``corrections'' that make the response worse. Second, the model may get stuck in loops, fixing one problem while introducing another, oscillating without converging. Third, on tasks where the model is confidently wrong (systematic errors), the critique will agree with the initial response and no correction occurs.
+\textbf{When self-correction fails.} Three failure modes are common. First, the model's critique ability may be poor--it cannot identify real errors, or it hallucinates errors that do not exist, leading to ``corrections'' that make the response worse. Second, the model may get stuck in loops, fixing one problem while introducing another, oscillating without converging. Third, on tasks where the model is confidently wrong (systematic errors), the critique will agree with the initial response and no correction occurs.
 
 \begin{tipbox}
 \textbf{Improving self-correction reliability.} Use an external signal (verifier, code execution, retrieval) in the critique step rather than relying solely on the model's self-assessment. A model critiquing its own math is unreliable; a model whose critique step includes running the solution through a symbolic checker is much more reliable. The self-correction loop becomes powerful when the ``critique'' step has access to ground truth or near-ground-truth feedback.
@@ -152,7 +152,7 @@ The cost is $K \times$ normal inference (maintaining $K$ parallel beams). The be
 
 \subsection{Monte Carlo Tree Search (MCTS)}
 
-MCTS is a more sophisticated search strategy, originally developed for game-playing AI (it powered AlphaGo). Instead of maintaining $K$ parallel beams uniformly, MCTS allocates computation \textit{adaptively}---spending more time exploring promising branches and less time on dead ends.
+MCTS is a more sophisticated search strategy, originally developed for game-playing AI (it powered AlphaGo). Instead of maintaining $K$ parallel beams uniformly, MCTS allocates computation \textit{adaptively}--spending more time exploring promising branches and less time on dead ends.
 
 \begin{infobox}
 \textbf{MCTS for LLM Reasoning: Four Steps}
@@ -176,7 +176,7 @@ The model considers three possible first steps: (A) ``Subtract 5 from both sides
 
 \textbf{Round 2: Focus on promising branches.} MCTS explores more variations of path A (all correct). Path A's value stays at 1.0 (high confidence). Path C is abandoned (no further rollouts spent on it).
 
-\textbf{Final decision:} Return the best completion found along path A. MCTS spent 1 rollout on the dead-end path C and multiple rollouts on the promising path A---this adaptive allocation is its key advantage over beam search, which would have maintained all three paths equally.
+\textbf{Final decision:} Return the best completion found along path A. MCTS spent 1 rollout on the dead-end path C and multiple rollouts on the promising path A--this adaptive allocation is its key advantage over beam search, which would have maintained all three paths equally.
 
 \begin{tipbox}
 \textbf{Beam search vs MCTS.}
@@ -220,7 +220,7 @@ Cost: 50--100$\times$ normal inference. Benefit: can solve problems the base mod
 
 With a fixed total compute budget, how should you split investment between training and inference?
 
-Chapter 12 showed that GRPO training with $10\times$ compute produces a 23-point accuracy gain on MATH (45\% $\to$ 68\%). This section shows that test-time compute can produce comparable gains---but the economics are different.
+Chapter 12 showed that GRPO training with $10\times$ compute produces a 23-point accuracy gain on MATH (45\% $\to$ 68\%). This section shows that test-time compute can produce comparable gains--but the economics are different.
 
 \textbf{Training compute scales sublinearly but amortizes across all queries.} Doubling training compute does not double model quality. But the improved model serves every future query at no additional cost. For a model serving 100 million queries, even an expensive training investment is cheap per query.
 
@@ -237,7 +237,7 @@ Chapter 12 showed that GRPO training with $10\times$ compute produces a 23-point
 \end{infobox}
 
 \begin{tipbox}
-\textbf{The practical frontier.} The best systems combine both. Train hard (GRPO, PPO, DPO---Chapters 6--12) to build the strongest possible base model. Then apply test-time compute selectively on the hardest queries. Chapter 12's DeepSeek-R1 invested heavily in training-time compute (GRPO with curriculum learning). OpenAI's o1 reportedly invests heavily in test-time compute (extended ``thinking'' at inference). The optimal split depends on your query volume, latency requirements, and the difficulty distribution of your workload.
+\textbf{The practical frontier.} The best systems combine both. Train hard (GRPO, PPO, DPO--Chapters 6--12) to build the strongest possible base model. Then apply test-time compute selectively on the hardest queries. Chapter 12's DeepSeek-R1 invested heavily in training-time compute (GRPO with curriculum learning). OpenAI's o1 reportedly invests heavily in test-time compute (extended ``thinking'' at inference). The optimal split depends on your query volume, latency requirements, and the difficulty distribution of your workload.
 
 Chapter 17 integrates training and inference strategies into end-to-end recipes for chatbots, reasoners, and agents.
 \end{tipbox}

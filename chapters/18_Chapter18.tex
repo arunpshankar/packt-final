@@ -4,7 +4,7 @@
 
 \section{When Things Go Wrong}
 
-RL training is notoriously unstable. The supervised learning loop --- compute loss, backpropagate, update weights --- behaves predictably. The RL loop --- generate rollouts, estimate advantages, update policy, generate new rollouts from the updated policy --- is a closed feedback system where small errors compound and training can diverge in ways that are difficult to diagnose from loss curves alone.
+RL training is notoriously unstable. The supervised learning loop -- compute loss, backpropagate, update weights -- behaves predictably. The RL loop -- generate rollouts, estimate advantages, update policy, generate new rollouts from the updated policy -- is a closed feedback system where small errors compound and training can diverge in ways that are difficult to diagnose from loss curves alone.
 
 This chapter covers the most common failure modes in RL-for-LLM training, how to detect them early, how to fix them, and how to scale RL training to larger models and longer horizons without catastrophic failure. It also covers operational concerns: serving RL-trained models in production, monitoring for reward hacking drift, and knowing when to retrain.
 
@@ -34,18 +34,18 @@ The KL divergence between the current policy and the reference policy (Chapter 6
 
 \subsection{Reward Hacking and Collapse}
 
-The policy finds a strategy that scores well on the reward model but does not reflect genuine quality improvement. As the policy moves further from the training distribution of the reward model, reward model predictions become unreliable --- a form of distributional shift (Chapter 9).
+The policy finds a strategy that scores well on the reward model but does not reflect genuine quality improvement. As the policy moves further from the training distribution of the reward model, reward model predictions become unreliable -- a form of distributional shift (Chapter 9).
 
 \begin{infobox}
 \textbf{Diagnosing reward hacking.}
 
-\textbf{Symptom:} Reward metric improves steadily. But when you read the actual model outputs, quality has degraded --- responses are repetitive, overly verbose, use specific phrasings the reward model liked during its own training, or refuse too many benign requests.
+\textbf{Symptom:} Reward metric improves steadily. But when you read the actual model outputs, quality has degraded -- responses are repetitive, overly verbose, use specific phrasings the reward model liked during its own training, or refuse too many benign requests.
 
 \textbf{Root cause:} The reward model is overfit to patterns in its training distribution. The policy exploits these patterns without learning the underlying quality the reward was supposed to capture.
 
 \textbf{Indicators to monitor:}
 \begin{itemize}
-\item Output diversity (measure distinct n-grams across rollouts --- should not drop)
+\item Output diversity (measure distinct n-grams across rollouts -- should not drop)
 \item Average response length (should be stable, not monotonically increasing)
 \item Refusal rate on held-out benign prompts (should not increase)
 \item Human evaluation score on a fixed eval set (should correlate with reward)
@@ -155,7 +155,7 @@ Always supplement automated benchmarks with human evaluation on a representative
 
 \subsection{Serving Infrastructure}
 
-RL-trained models are served identically to SFT models --- the same inference server, the same API endpoints. The difference is in monitoring: RL-trained models can drift in quality in ways SFT models do not, because the reward hacking patterns discovered during training may generalize differently to production inputs.
+RL-trained models are served identically to SFT models -- the same inference server, the same API endpoints. The difference is in monitoring: RL-trained models can drift in quality in ways SFT models do not, because the reward hacking patterns discovered during training may generalize differently to production inputs.
 
 \begin{infobox}
 \textbf{Production monitoring checklist.}
@@ -167,7 +167,7 @@ Metric & Why it matters \\
 Average response length & Sudden increase indicates verbose reward hacking \\
 Refusal rate & Sudden increase indicates over-cautious drift \\
 User thumbs-down rate & Captures quality degradation not visible in model metrics \\
-Latency percentiles & p50, p95, p99 --- RL models may generate longer outputs \\
+Latency percentiles & p50, p95, p99 -- RL models may generate longer outputs \\
 Toxicity classifier score & Catch safety regressions from reward drift \\
 \bottomrule
 \end{tabular}

@@ -69,7 +69,7 @@ After 10 iterations of RL training, the model more than \textbf{doubles} its suc
 
 \subsection{Formal Mathematics with Lean}
 
-In July 2024, Google DeepMind's AlphaProof (using RL with Lean theorem prover) solved 4 out of 6 problems from the International Mathematical Olympiad, earning a silver medal performance! The model generates candidate proofs, the Lean verifier checks validity, valid proofs earn high reward, and RL optimizes the policy to generate valid proofs. This was the first time AI reached medal-level performance on IMO---the key was using \textit{formal verification} as the reward signal, completely objective with no human judgment needed.
+In July 2024, Google DeepMind's AlphaProof (using RL with Lean theorem prover) solved 4 out of 6 problems from the International Mathematical Olympiad, earning a silver medal performance! The model generates candidate proofs, the Lean verifier checks validity, valid proofs earn high reward, and RL optimizes the policy to generate valid proofs. This was the first time AI reached medal-level performance on IMO--the key was using \textit{formal verification} as the reward signal, completely objective with no human judgment needed.
 
 \begin{infobox}
 \textbf{Formal Verification Reward:}
@@ -90,7 +90,7 @@ $$r_{\text{proof}}(\theta, \pi) = \begin{cases}
 \begin{infobox}
 \textbf{Tool-Using AI:}
 
-Modern AI systems don't just generate text---they use tools: call APIs (weather, search, calculator), execute code (Python interpreter), query databases (SQL), control applications (browser, email).
+Modern AI systems don't just generate text--they use tools: call APIs (weather, search, calculator), execute code (Python interpreter), query databases (SQL), control applications (browser, email).
 
 Each tool interaction gives immediate feedback: API call succeeds $\to$ good reward, API call fails $\to$ bad reward, result solves user problem $\to$ bonus reward. This enables models to learn effective tool use through RL!
 \end{infobox}
@@ -99,7 +99,7 @@ Each tool interaction gives immediate feedback: API call succeeds $\to$ good rew
 
 \textbf{User Query:} ``What's the weather like in Tokyo right now?''
 
-\paragraph{Attempt 1 (Novice Model):} Calls weather API with plain text string ``Tokyo weather now.'' Result: ERROR---invalid parameter format. Reward: $-5$.
+\paragraph{Attempt 1 (Novice Model):} Calls weather API with plain text string ``Tokyo weather now.'' Result: ERROR--invalid parameter format. Reward: $-5$.
 
 \paragraph{Attempt 2 (Learning):} Calls weather API with structured parameters: \{city: ``Tokyo'', country: ``Japan''\}. Result: success, returns temp 22, condition ``Sunny,'' humidity 65. Generated response: ``The temperature in Tokyo is 22C with sunny skies.'' Total reward: $+8$.
 

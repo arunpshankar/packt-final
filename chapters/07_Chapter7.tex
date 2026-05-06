@@ -299,11 +299,11 @@ $\beta$ & \textbf{Logit} & $P(\text{w} \succ \text{l})$ & \textbf{Loss} & \textb
 \begin{infobox}
 \textbf{Tuning $\beta$ in DPO}
 
-\textbf{Too small} ($\beta < 0.05$): The loss function is nearly flat. Gradients are tiny, learning is extremely slow, and the model may fail to converge. Equivalent to a very tight leash---the policy barely moves from the reference.
+\textbf{Too small} ($\beta < 0.05$): The loss function is nearly flat. Gradients are tiny, learning is extremely slow, and the model may fail to converge. Equivalent to a very tight leash--the policy barely moves from the reference.
 
 \textbf{Just right} ($\beta = 0.1$ to $0.2$): The standard range for most tasks. The loss provides clear gradients without being oversensitive to noise in the preference data. Start here.
 
-\textbf{Too large} ($\beta > 0.5$): The loss reacts strongly to every preference pair, including noisy or mislabeled ones. The policy can overfit to artifacts in the data (such as preferring longer responses because annotators tended to pick longer answers). Equivalent to a loose leash---the policy drifts far from the reference.
+\textbf{Too large} ($\beta > 0.5$): The loss reacts strongly to every preference pair, including noisy or mislabeled ones. The policy can overfit to artifacts in the data (such as preferring longer responses because annotators tended to pick longer answers). Equivalent to a loose leash--the policy drifts far from the reference.
 
 \textbf{Relationship to Chapter 6:} In RLHF, $\beta$ controls the KL penalty strength. A large $\beta$ in RLHF means a tight leash (conservative policy). In DPO, the relationship is \textit{inverted}: a large $\beta$ amplifies the implicit reward signal, effectively giving the policy more room to move. This difference can be confusing when switching between the two frameworks, so be careful when reading papers that use both.
 \end{infobox}

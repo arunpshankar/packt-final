@@ -74,7 +74,7 @@ These numbers are approximate and depend heavily on task difficulty and data qua
 
 Human preferences are inherently subjective. Two annotators shown the same pair of responses will disagree roughly 20 to 35\% of the time, depending on the task. This disagreement is not a bug; it reflects genuine ambiguity in what ``better'' means.
 
-This has practical implications for reward model training. The theoretical maximum accuracy of a reward model is bounded by inter-annotator agreement. If humans agree only 75\% of the time, a reward model that achieves 75\% accuracy is essentially perfect---it is matching the human consensus as well as any individual human would.
+This has practical implications for reward model training. The theoretical maximum accuracy of a reward model is bounded by inter-annotator agreement. If humans agree only 75\% of the time, a reward model that achieves 75\% accuracy is essentially perfect--it is matching the human consensus as well as any individual human would.
 
 \begin{tipbox}
 \textbf{Measure your annotation agreement before training.} Have multiple annotators label a subset of your data (at least 500 pairs with 2+ annotators each). Compute the agreement rate. If it is below 65\%, your preference signal is too noisy for effective training. Either improve your annotation guidelines, filter to higher-confidence pairs, or simplify the comparison task.
@@ -248,7 +248,7 @@ Before using a reward model to train a policy, you should verify that it is actu
 
 This chapter has covered the scoring side of RL for LLMs: how to build, train, evaluate, and defend reward models, and how the value function serves as PPO's learned critic.
 
-Chapter 10 surveys the full landscape of modern RL algorithms, including GRPO, RLOO, and KTO. These algorithms make different choices about how to use reward signals---some eliminate the critic, some eliminate paired preferences, and some combine supervised learning with preference optimization. Understanding reward modeling deeply (this chapter) makes those algorithmic choices much easier to evaluate.
+Chapter 10 surveys the full landscape of modern RL algorithms, including GRPO, RLOO, and KTO. These algorithms make different choices about how to use reward signals--some eliminate the critic, some eliminate paired preferences, and some combine supervised learning with preference optimization. Understanding reward modeling deeply (this chapter) makes those algorithmic choices much easier to evaluate.
 
 Chapter 11 goes beyond scalar reward models to explore more sophisticated scoring mechanisms: process reward models that score each reasoning step individually, outcome verifiers that check correctness with formal tools, and the dramatic accuracy improvements that step-level feedback enables on reasoning tasks.
 

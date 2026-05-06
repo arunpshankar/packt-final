@@ -6,7 +6,7 @@
 
 The previous chapters built a toolkit: SFT for cold-starting (Chapter 5), RLHF and PPO for preference alignment (Chapter 6), DPO and Online DPO for efficient preference learning (Chapters 7--8), reward models for feedback signals (Chapter 9), GRPO and RLOO for token-level RL (Chapter 10), verifiers and PRMs for step-level credit (Chapter 11), reasoning emergence via GRPO (Chapter 12), test-time compute for inference-time scaling (Chapter 13), self-play for self-improving systems (Chapter 14), multi-objective RL for balancing competing goals (Chapter 15), and domain-specific reward functions for code, math, and tools (Chapter 16).
 
-The question now is: how do you assemble these ingredients into a working production system? The answer depends on what you are building. This chapter presents three recipes --- one for each major use case --- with concrete implementation guidance, expected training costs, and evaluation checklists.
+The question now is: how do you assemble these ingredients into a working production system? The answer depends on what you are building. This chapter presents three recipes -- one for each major use case -- with concrete implementation guidance, expected training costs, and evaluation checklists.
 
 \begin{infobox}
 \textbf{The three use cases.}
@@ -22,7 +22,7 @@ The question now is: how do you assemble these ingredients into a working produc
 
 A chatbot needs to be helpful, harmless, and honest across thousands of diverse prompt types. The standard RLHF pipeline (Chapters 5--6) is still the most reliable recipe for this use case.
 
-\subsection{Phase 1 --- SFT Cold Start}
+\subsection{Phase 1 -- SFT Cold Start}
 
 Start with a strong base model (7B--70B parameters) and fine-tune on a curated instruction-following dataset. Quality matters more than quantity here: 50,000 high-quality examples outperform 500,000 noisy ones. The SFT phase teaches the model the format and tone of a good assistant response.
 
@@ -36,13 +36,13 @@ Data sources: ShareGPT, Alpaca, Open Assistant, or proprietary collected convers
 Target: 30,000--100,000 examples, covering 50+ distinct task types.
 \end{tipbox}
 
-\subsection{Phase 2 --- Reward Model Training}
+\subsection{Phase 2 -- Reward Model Training}
 
 Train a reward model (Chapter 9) on human preference comparisons. For chatbots, the reward model must capture the full HHH triad (helpful, harmless, honest) rather than a single proxy objective.
 
 Collect preference data: present human annotators with prompt--response pairs and ask which response is better. Aim for at least 20,000 comparison pairs. Train the reward model as a binary classifier on top of a pretrained LLM using the Bradley-Terry objective (Chapter 6).
 
-\subsection{Phase 3 --- PPO or DPO Alignment}
+\subsection{Phase 3 -- PPO or DPO Alignment}
 
 With the reward model in hand, align the SFT model using PPO or DPO.
 
@@ -71,7 +71,7 @@ Training cost & 8--32 A100 GPUs, 2--5 days \\
 
 A reasoner needs to solve structured problems correctly, not just generate plausible-sounding answers. The DeepSeek-R1 recipe (Chapter 12) is the state-of-the-art approach: use GRPO with verifiable rewards to train the model to produce correct chain-of-thought solutions.
 
-\subsection{Phase 1 --- Reasoning SFT Cold Start}
+\subsection{Phase 1 -- Reasoning SFT Cold Start}
 
 Start with a base model that has some mathematical or code knowledge. Fine-tune on a dataset of (problem, solution) pairs where the solution includes explicit chain-of-thought reasoning. Sources: MATH, GSM8K with step-by-step solutions, APPS for code, ARC for science.
 
@@ -83,7 +83,7 @@ Only include problems where the solution is verifiably correct. Remove solutions
 Target: 50,000--200,000 (problem, reasoning, answer) triples. Diversity of problem types within your target domain matters more than raw volume.
 \end{tipbox}
 
-\subsection{Phase 2 --- GRPO with Verifiable Rewards}
+\subsection{Phase 2 -- GRPO with Verifiable Rewards}
 
 Replace the human reward model with an automated verifier (Chapter 11). For math: compare the model's final answer to the ground-truth answer using symbolic equality checking. For code: run the generated code against a test suite. For logic: evaluate formal correctness.
 
@@ -101,7 +101,7 @@ Apply GRPO (Chapter 10): for each problem, generate $G = 8$--$16$ response candi
 Combined: $r(y) = r_{\text{correct}}(y) + r_{\text{format}}(y) + r_{\text{length}}(y)$.
 \end{infobox}
 
-\subsection{Phase 3 --- Test-Time Scaling}
+\subsection{Phase 3 -- Test-Time Scaling}
 
 The trained reasoner is already strong. To push further, apply best-of-N with a PRM at inference time (Chapter 13). Generate $N = 8$--$64$ solutions for each problem, score each solution step-by-step with the PRM, and return the solution with the highest cumulative PRM score.
 
@@ -127,7 +127,7 @@ Training cost & 16--64 A100 GPUs, 3--7 days \\
 
 An agent must complete multi-step tasks in real environments: browsing the web, executing code, calling APIs, managing files. This is the hardest use case: sparse rewards, long horizons, irreversible actions, and a much larger action space than text generation.
 
-\subsection{Phase 1 --- Tool-Use SFT}
+\subsection{Phase 1 -- Tool-Use SFT}
 
 Fine-tune on demonstrations of correct tool use: which tool to call, with what arguments, and how to interpret the result. Sources: ToolBench, AgentInstruct, or task-specific demonstrations. The SFT phase teaches the model the tool-use format before any RL.
 
@@ -139,7 +139,7 @@ Each training example should follow the format: \texttt{[SYSTEM: available tools
 Include examples of tool call \textit{failures} (wrong arguments, API errors) and correct recovery. An agent that has never seen a failed tool call will not know how to handle one in production.
 \end{tipbox}
 
-\subsection{Phase 2 --- Reward Shaping and RL}
+\subsection{Phase 2 -- Reward Shaping and RL}
 
 Define a reward function that covers both task completion and quality of the trajectory:
 

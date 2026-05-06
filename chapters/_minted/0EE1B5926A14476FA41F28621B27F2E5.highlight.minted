@@ -1,0 +1,14 @@
+\begin{MintedVerbatim}[commandchars=\\\{\},codes={\catcode`\$=3\catcode`\^=7\catcode`\_=8\relax}]
+Reinforcement\PYGZhy{}Learning\PYGZhy{}for\PYGZhy{}LLMs/
++\PYGZhy{}\PYGZhy{} notebooks/
+|   +\PYGZhy{}\PYGZhy{} part1\PYGZus{}foundations/    \PYGZsh{} Chapters 1\PYGZhy{}4
+|   +\PYGZhy{}\PYGZhy{} part2\PYGZus{}core/           \PYGZsh{} Chapters 5\PYGZhy{}10
+|   +\PYGZhy{}\PYGZhy{} part3\PYGZus{}advanced/       \PYGZsh{} Chapters 11\PYGZhy{}16
+|   +\PYGZhy{}\PYGZhy{} part4\PYGZus{}recipes/        \PYGZsh{} Chapters 17\PYGZhy{}19
++\PYGZhy{}\PYGZhy{} utils/
+|   +\PYGZhy{}\PYGZhy{} data.py               \PYGZsh{} dataset loaders
+|   +\PYGZhy{}\PYGZhy{} eval.py               \PYGZsh{} win rate, KL divergence
+|   +\PYGZhy{}\PYGZhy{} viz.py                \PYGZsh{} training curve plots
++\PYGZhy{}\PYGZhy{} data/samples/             \PYGZsh{} toy datasets for offline runs
++\PYGZhy{}\PYGZhy{} requirements.txt
+\end{MintedVerbatim}

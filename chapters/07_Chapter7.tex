@@ -4,13 +4,6 @@
 
 \section{From RLHF to DPO}
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.92\linewidth]{images/ch07_fig01_dpo_vs_rlhf.png}
-\caption{DPO collapses the three-model RLHF pipeline into a single supervised objective, eliminating the need for an explicit reward model and RL loop.}
-\label{fig:ch07:dpo}
-\end{figure}
-
 Chapter 6 revealed both the power and the pain of classical RLHF. The power: a reward model trained on human comparisons can guide a policy to produce responses that are better than anything in its original training data. The pain: you need four models in GPU memory simultaneously, PPO has a dozen sensitive hyperparameters, and the reward model itself can be exploited through reward hacking.
 
 In 2023, Rafael Rafailov and colleagues at Stanford asked a deceptively simple question: \textit{what if we could skip the reward model entirely?} Their paper, ``Direct Preference Optimization: Your Language Model Is Secretly a Reward Model,'' showed that the answer was yes. The mathematical insight is elegant: the reward function that the RLHF pipeline learns is already encoded, implicitly, inside the policy itself. You do not need to extract it into a separate model. You can train the policy directly on preference pairs, with no reward model, no value function, no PPO loop.
@@ -370,12 +363,14 @@ The next chapter introduces Online DPO, which addresses DPO's biggest weakness (
 \end{infobox}
 
 
-\begin{tipbox}
-\textbf{Companion notebook.} The code for this chapter is in
-\texttt{code/notebooks/part2\_core/07\_dpo.ipynb}
-in the book repository at \texttt{github.com/arunpshankar/packt-final}.
-On GitHub, navigate to the file and replace \texttt{github.com} with
-\texttt{githubtocolab.com} in the URL to open it directly in Colab.
-\end{tipbox}
+The companion code for this chapter is at \texttt{github.com/arunpshankar/packt-final} -- swap \texttt{github.com} for \texttt{githubtocolab.com} to open it directly in Colab. The diagram below provides a visual summary of DPO covered in this chapter.
+
+\clearpage
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.88\textwidth]{images/ch07_fig01_dpo_overview.png}
+\caption{Direct Preference Optimization at a glance -- skip the reward model, go straight from human preferences to policy improvement with one elegant loss function.}
+\label{fig:ch07:dpo_overview}
+\end{figure}
 
 \end{chapterenv}

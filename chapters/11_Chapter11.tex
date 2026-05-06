@@ -4,13 +4,6 @@
 
 \section{Outcome vs Process: Two Ways to Score}
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.92\linewidth]{images/ch11_fig01_verifiable_vs_learned.png}
-\caption{Verifiable rewards (right) provide ground-truth binary signal that cannot be hacked; learned reward models (left) are susceptible to distributional shift.}
-\label{fig:ch11:verifiable}
-\end{figure}
-
 Chapter 9 covered the fundamentals of reward modeling: how to train a model that assigns a single scalar score to a complete response, how the value function serves as PPO's critic, and what happens when reward models are over-optimized. That chapter treated scoring as a monolithic operation: prompt in, number out.
 
 But there is a deeper question: \textit{when} in the response should you assign a score? The answer splits the scoring world into two fundamentally different approaches.
@@ -333,12 +326,14 @@ The algorithms from Chapter 10 work with any of these scoring methods. DPO and K
 \end{infobox}
 
 
-\begin{tipbox}
-\textbf{Companion notebook.} The code for this chapter is in
-\texttt{code/notebooks/part3\_advanced/11\_verifiers\_outcome\_rewards.ipynb}
-in the book repository at \texttt{github.com/arunpshankar/packt-final}.
-On GitHub, navigate to the file and replace \texttt{github.com} with
-\texttt{githubtocolab.com} in the URL to open it directly in Colab.
-\end{tipbox}
+The companion code for this chapter is at \texttt{github.com/arunpshankar/packt-final} -- swap \texttt{github.com} for \texttt{githubtocolab.com} to open it directly in Colab. The diagram below provides a visual summary of verifiers and outcome rewards covered in this chapter.
+
+\clearpage
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.88\textwidth]{images/ch11_fig01_verifiers_overview.png}
+\caption{Verifiers \& outcome rewards at a glance -- automatic correctness checking that provides fast, scalable, unhackable reward signals for RL.}
+\label{fig:ch11:verifiers_overview}
+\end{figure}
 
 \end{chapterenv}

@@ -4,13 +4,6 @@
 
 \section{The Test-Time Compute Idea}
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.92\linewidth]{images/ch13_fig01_inference_strategies.png}
-\caption{Three test-time compute strategies: best-of-$N$ sampling, beam search, and MCTS tree search, ordered by compute cost and accuracy gain.}
-\label{fig:ch13:strategies}
-\end{figure}
-
 Every chapter so far has focused on making models better during \textit{training}: supervised fine-tuning teaches basic competence, RLHF and DPO align with preferences, GRPO discovers reasoning strategies. Once training is done, the model is fixed. At inference time, it generates one response and returns it. The quality of that response is entirely determined by what the model learned during training.
 
 Test-time compute flips this assumption. Instead of generating one response, you spend extra computation \textit{at inference time} to produce a better answer. Generate multiple candidates and pick the best one. Have the model critique and revise its own output. Explore multiple reasoning paths in parallel and select the most promising one. The model's weights do not change--you are trading compute for quality on a per-query basis.
@@ -225,12 +218,6 @@ Cost: 50--100$\times$ normal inference. Benefit: can solve problems the base mod
 
 \section{Train-Time vs Test-Time Compute: The Allocation Question}
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.92\linewidth]{images/ch13_fig02_scaling_curve.png}
-\caption{Test-time compute scaling: accuracy improves log-linearly with the number of samples, with self-consistency and MCTS outperforming best-of-$N$.}
-\label{fig:ch13:scaling}
-\end{figure}
 
 With a fixed total compute budget, how should you split investment between training and inference?
 
@@ -257,12 +244,14 @@ Chapter 17 integrates training and inference strategies into end-to-end recipes 
 \end{tipbox}
 
 
-\begin{tipbox}
-\textbf{Companion notebook.} The code for this chapter is in
-\texttt{code/notebooks/part3\_advanced/13\_test\_time\_compute.ipynb}
-in the book repository at \texttt{github.com/arunpshankar/packt-final}.
-On GitHub, navigate to the file and replace \texttt{github.com} with
-\texttt{githubtocolab.com} in the URL to open it directly in Colab.
-\end{tipbox}
+The companion code for this chapter is at \texttt{github.com/arunpshankar/packt-final} -- swap \texttt{github.com} for \texttt{githubtocolab.com} to open it directly in Colab. The diagram below provides a visual summary of test-time compute covered in this chapter.
+
+\clearpage
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.88\textwidth]{images/ch13_fig01_test_time_compute_overview.png}
+\caption{Test-time compute at a glance -- more thinking, better answers: self-consistency, tree search, and iterative refinement at inference time.}
+\label{fig:ch13:test_time_compute_overview}
+\end{figure}
 
 \end{chapterenv}

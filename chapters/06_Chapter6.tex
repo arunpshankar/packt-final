@@ -32,6 +32,13 @@ Think of training a chef:
 The combination makes you both skilled AND attuned to what diners actually want.
 \end{infobox}
 
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.88\textwidth]{images/ch06_fig01_rlhf_ppo_intro.png}
+\caption{RLHF and PPO at a glance -- collect human preferences, train a reward model, then optimize the policy with PPO.}
+\label{fig:ch06:rlhf_ppo_intro}
+\end{figure}
+
 \section{Step 2: Reward Modeling}
 
 \subsection{The Key Insight}
@@ -614,9 +621,9 @@ The companion code for this chapter is at \texttt{github.com/arunpshankar/packt-
 \clearpage
 \begin{figure}[!h]
 \centering
-\includegraphics[width=0.88\textwidth]{images/ch06_fig01_rlhf_ppo_overview.png}
-\caption{RLHF \& PPO at a glance -- collecting human preferences, training a reward model, and fine-tuning with PPO to produce an aligned LLM.}
-\label{fig:ch06:rlhf_ppo_overview}
+\includegraphics[width=0.88\textwidth]{images/ch06_fig02_rlhf_ppo_detailed.png}
+\caption{RLHF and PPO in depth -- the full pipeline from preference data through reward model training, PPO objective, and end-to-end alignment.}
+\label{fig:ch06:rlhf_ppo_detailed}
 \end{figure}
 
 \end{chapterenv}

@@ -10,6 +10,13 @@ In 2023, Rafael Rafailov and colleagues at Stanford asked a deceptively simple q
 
 The result is DPO: a method that achieves comparable performance to full RLHF while cutting memory requirements in half and replacing a complex RL training loop with something that looks almost like supervised learning. This chapter derives DPO from the ground up, walks through the math with concrete numbers, and explains when DPO is the right choice and when it is not.
 
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.88\textwidth]{images/ch07_fig01_dpo_intro.png}
+\caption{Direct Preference Optimization at a glance -- skip the reward model and optimize the policy directly from preference pairs.}
+\label{fig:ch07:dpo_intro}
+\end{figure}
+
 \section{The Reparameterization Trick}
 
 The derivation starts from the same place as Chapter 6: the Bradley-Terry model of preferences and the KL-constrained reward maximization objective. Recall the RLHF objective from Section 6.3.1:
@@ -368,9 +375,9 @@ The companion code for this chapter is at \texttt{github.com/arunpshankar/packt-
 \clearpage
 \begin{figure}[!h]
 \centering
-\includegraphics[width=0.88\textwidth]{images/ch07_fig01_dpo_overview.png}
-\caption{Direct Preference Optimization at a glance -- skip the reward model, go straight from human preferences to policy improvement with one elegant loss function.}
-\label{fig:ch07:dpo_overview}
+\includegraphics[width=0.88\textwidth]{images/ch07_fig02_dpo_detailed.png}
+\caption{DPO in depth -- the full derivation from preference pairs through the reparameterization trick, loss function, and comparison with RLHF.}
+\label{fig:ch07:dpo_detailed}
 \end{figure}
 
 \end{chapterenv}

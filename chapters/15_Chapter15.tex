@@ -4,16 +4,16 @@
 
 \section{The Problem with a Single Reward}
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.92\linewidth]{images/ch15_fig01_pareto_frontier.png}
-\caption{The Pareto frontier of helpfulness versus safety: no solution dominates all others on both objectives simultaneously.}
-\label{fig:ch15:pareto}
-\end{figure}
-
 Every technique from Chapter 5 through Chapter 14 optimized a single reward signal. The reward model captured human preferences, the PRM captured step-by-step correctness, the verifier captured task completion. Single objectives are clean to optimize but rarely match reality.
 
 Real AI assistants must balance competing goals simultaneously. A response can be highly helpful but also misleading. A response can be completely honest but also harmful. A concise answer may sacrifice completeness; a thorough answer may waste the user's time. These tensions do not disappear -- they must be managed explicitly.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.88\textwidth]{images/ch15_fig01_multi_objective_intro.png}
+\caption{Multi-objective RL and agentic systems at a glance -- balancing helpfulness, harmlessness, and honesty across long action trajectories.}
+\label{fig:ch15:multi_objective_intro}
+\end{figure}
 
 \begin{infobox}
 \textbf{Anthropic's HHH framework.}

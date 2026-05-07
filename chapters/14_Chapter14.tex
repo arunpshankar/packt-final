@@ -8,6 +8,13 @@ Everything up to this point has required external feedback: human annotators com
 
 This is counterintuitive. How can a model improve itself if it is also the judge? The key insight is that models are often better at \textit{verification} than at \textit{generation}. Judging whether a solution is correct is a simpler task than producing a correct solution from scratch. By separating generation and evaluation into distinct passes, we exploit this asymmetry.
 
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.88\textwidth]{images/ch14_fig01_self_play_intro.png}
+\caption{Self-play and Constitutional AI at a glance -- the self-improvement loop and the main methods that exploit the verify-easier-than-generate asymmetry.}
+\label{fig:ch14:self_play_intro}
+\end{figure}
+
 \begin{infobox}
 \textbf{The self-improvement loop.}
 
@@ -174,14 +181,6 @@ Self-play and iterative refinement are among the most powerful tools in modern R
 All these methods rest on the same asymmetry: models are better at judging than at generating. By separating the two roles and iterating, we get compounding improvement cycles that scale with compute rather than with human effort.
 
 
-The companion code for this chapter is at \texttt{github.com/arunpshankar/packt-final} -- swap \texttt{github.com} for \texttt{githubtocolab.com} to open it directly in Colab. The diagram below provides a visual summary of scaling RL systems covered in this chapter.
-
-\clearpage
-\begin{figure}[!h]
-\centering
-\includegraphics[width=0.88\textwidth]{images/ch14_fig01_scaling_rl_overview.png}
-\caption{Scaling RL at a glance -- from experiments to production: data pipelines, parallelism, memory management, monitoring, and deployment.}
-\label{fig:ch14:scaling_rl_overview}
-\end{figure}
+The companion code for this chapter is at \texttt{github.com/arunpshankar/packt-final} -- swap \texttt{github.com} for \texttt{githubtocolab.com} to open it directly in Colab.
 
 \end{chapterenv}

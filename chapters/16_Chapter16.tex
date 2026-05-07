@@ -4,18 +4,18 @@
 
 \section{Domain-Specific Rewards: The Key to Specialization}
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.92\linewidth]{images/ch16_fig01_domain_rl_pipeline.png}
-\caption{Domain-specific RL: the reward signal is provided by a domain verifier (code executor, symbolic math checker, or tool API) rather than a learned reward model.}
-\label{fig:ch16:domain}
-\end{figure}
-
 While general RLHF uses human preferences, domain-specific RL can leverage \textbf{automated verification}, which is often more reliable and scalable than human feedback!
 
 The pattern: (1) Identify domain with objective correctness metric, (2) use automated verifier as reward signal, (3) apply RL to optimize for verified correctness, (4) result: superhuman performance in narrow domain.
 
 This approach has been extraordinarily successful for code generation (execution-based rewards), mathematics (formal proof verification), tool use (API success/failure), and multi-turn dialogue (conversation quality metrics).
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.88\textwidth]{images/ch16_fig01_domain_rl_intro.png}
+\caption{Domain-specific RL at a glance -- when code, math, tools, and dialogue each provide their own automated verifier as the reward signal.}
+\label{fig:ch16:domain_rl_intro}
+\end{figure}
 
 \section{Code: Execution Feedback as Reward}
 

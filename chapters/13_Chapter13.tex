@@ -10,6 +10,13 @@ Test-time compute flips this assumption. Instead of generating one response, you
 
 This is the idea behind OpenAI's o1 (Chapter 12), and it applies broadly to any model trained with any method from this book. A model trained with GRPO can be made even better at inference time by generating multiple solutions and selecting the best one with a PRM (Chapter 11). A model trained with DPO can be improved by self-correction loops. The techniques in this chapter are orthogonal to training: they work on top of whatever the model has already learned.
 
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.88\textwidth]{images/ch13_fig01_test_time_compute_intro.png}
+\caption{Test-time compute at a glance -- spend extra computation per query to produce better answers without retraining the model.}
+\label{fig:ch13:test_time_compute_intro}
+\end{figure}
+
 \begin{infobox}
 \textbf{The core trade-off.}
 
@@ -244,14 +251,6 @@ Chapter 17 integrates training and inference strategies into end-to-end recipes 
 \end{tipbox}
 
 
-The companion code for this chapter is at \texttt{github.com/arunpshankar/packt-final} -- swap \texttt{github.com} for \texttt{githubtocolab.com} to open it directly in Colab. The diagram below provides a visual summary of test-time compute covered in this chapter.
-
-\clearpage
-\begin{figure}[!h]
-\centering
-\includegraphics[width=0.88\textwidth]{images/ch13_fig01_test_time_compute_overview.png}
-\caption{Test-time compute at a glance -- more thinking, better answers: self-consistency, tree search, and iterative refinement at inference time.}
-\label{fig:ch13:test_time_compute_overview}
-\end{figure}
+The companion code for this chapter is at \texttt{github.com/arunpshankar/packt-final} -- swap \texttt{github.com} for \texttt{githubtocolab.com} to open it directly in Colab.
 
 \end{chapterenv}

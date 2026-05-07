@@ -16,6 +16,13 @@ The result was not merely competitive with SFT-based approaches--it surpassed th
 
 The risk is obvious: without SFT to provide a ``warm start,'' the model begins RL from a pretrained checkpoint that can generate text but has no concept of instruction following, structured reasoning, or helpful behavior. The early stages of training are chaotic. But DeepSeek showed that with enough compute and the right algorithm, the model bootstraps these capabilities from scratch.
 
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.88\textwidth]{images/ch12_fig01_reasoning_grpo_intro.png}
+\caption{Reasoning with GRPO at a glance -- reward correctness and let the model discover chain-of-thought strategies on its own.}
+\label{fig:ch12:reasoning_grpo_intro}
+\end{figure}
+
 \section{The DeepSeek Recipe}
 
 The recipe has three ingredients: the GRPO algorithm (Chapter 10), simple binary verifiers (Chapter 11), and a curriculum that progresses from easy to hard problems.
@@ -261,14 +268,6 @@ Chapter 13 covers what happens \textit{after} training: how test-time compute te
 \end{infobox}
 
 
-The companion code for this chapter is at \texttt{github.com/arunpshankar/packt-final} -- swap \texttt{github.com} for \texttt{githubtocolab.com} to open it directly in Colab. The diagram below provides a visual summary of reasoning with GRPO covered in this chapter.
-
-\clearpage
-\begin{figure}[!h]
-\centering
-\includegraphics[width=0.88\textwidth]{images/ch12_fig01_reasoning_grpo_overview.png}
-\caption{Reasoning with GRPO (DeepSeek style) at a glance -- reward the reasoning process, not just the final answer, and let GRPO discover chain-of-thought strategies.}
-\label{fig:ch12:reasoning_grpo_overview}
-\end{figure}
+The companion code for this chapter is at \texttt{github.com/arunpshankar/packt-final} -- swap \texttt{github.com} for \texttt{githubtocolab.com} to open it directly in Colab.
 
 \end{chapterenv}

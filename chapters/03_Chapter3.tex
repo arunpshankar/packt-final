@@ -288,19 +288,24 @@ Then we keep the best, make variations, test them, and continue to improve. Afte
 
 \paragraph{Concrete language model example}
 
-\textbf{Prompt:} ``Explain machine learning''
+\begin{examplebox}
+\textbf{Prompt:}~\texttt{"Explain machine learning"}
 
-\textbf{Bad strategy} (low reward):
-\begin{quote}
-``Machine learning is when computers use algorithms to learn from data and make predictions or decisions without being explicitly programmed\ldots'' [continues with jargon]
-\end{quote}
-Average reward: +3 (too technical, not helpful for beginners).
+\smallskip
+\textbf{Bad strategy} (low reward) -- response:
 
-\textbf{Good strategy} (high reward):
-\begin{quote}
-``Think of machine learning as teaching a child to recognize animals. You show them many pictures and say `that is a dog, that is a cat.' Eventually, they learn the patterns and can identify animals that they have never seen before. Computers do something similar with data!''
-\end{quote}
-Average reward: +9 (clear, accessible, helpful!).
+\textit{``Machine learning is when computers use algorithms to learn from data and make predictions or decisions without being explicitly programmed\ldots''} [continues with jargon]
+
+\smallskip
+\textbf{Average reward:} +3 (too technical, not helpful for beginners).
+\tcblower
+\textbf{Good strategy} (high reward) -- response:
+
+\textit{``Think of machine learning as teaching a child to recognize animals. You show them many pictures and say `that is a dog, that is a cat.' Eventually, they learn the patterns and can identify animals that they have never seen before. Computers do something similar with data!''}
+
+\smallskip
+\textbf{Average reward:} +9 (clear, accessible, helpful!).
+\end{examplebox}
 
 \begin{infobox}
 \textbf{The magic of RL:} Through millions of trials, the model automatically discovers that clear explanations lead to high reward, using analogies leads to high reward, too much jargon leads to low reward, and ignoring the user leads to low reward. Nobody explicitly programmed these preferences. The model learned them from feedback!

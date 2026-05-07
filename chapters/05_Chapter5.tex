@@ -12,6 +12,13 @@ The idea is simple. Before a model can improve through trial and error (reinforc
 
 SFT is that first phase. We show the model thousands of examples of good behavior, and it learns to imitate them. The result is not a perfect model, but it is a model that knows the basic format, tone, and structure of helpful responses. That foundation is what makes everything in Chapters 6 through 12 possible.
 
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.88\textwidth]{images/ch05_fig01_sft_intro.png}
+\caption{Supervised Fine-Tuning at a glance -- show the model good examples and ask it to copy them.}
+\label{fig:ch05:sft_intro}
+\end{figure}
+
 But this chapter goes beyond basic SFT. We will also introduce the \textbf{cold start technique}: a way of structuring the training data so that the model learns to \textit{think before it answers}. This single idea, which involves teaching the model to produce internal reasoning traces before giving its final response, is the foundation that the entire reasoning pipeline in Part 3 of this book depends on. Without it, the RL algorithms in later chapters would have nothing to optimize.
 
 \section{The SFT Training Objective}
@@ -776,9 +783,9 @@ The companion code for this chapter is at \texttt{github.com/arunpshankar/packt-
 \clearpage
 \begin{figure}[!h]
 \centering
-\includegraphics[width=0.88\textwidth]{images/ch05_fig01_sft_overview.png}
-\caption{Supervised fine-tuning at a glance -- from pre-trained LLM to fine-tuned model via high-quality examples and cross-entropy loss.}
-\label{fig:ch05:sft_overview}
+\includegraphics[width=0.88\textwidth]{images/ch05_fig02_sft_detailed.png}
+\caption{Supervised fine-tuning in depth -- the full pipeline from cold start and think-tag priming through LoRA adaptation and RL readiness.}
+\label{fig:ch05:sft_detailed}
 \end{figure}
 
 \end{chapterenv}

@@ -2,7 +2,7 @@
 ### *A Complete Guide* — Companion Code Repository
 
 > **Book repo:** [github.com/arunpshankar/packt-final](https://github.com/arunpshankar/packt-final)  
-> **Author:** Arun Shankar (Packt, 2025)
+> **Authors:** Arun Shankar, Michael Chertushkin (Packt, 2025)
 
 Click any badge to open a notebook directly in Google Colab — no installation needed.
 
@@ -95,4 +95,4 @@ All notebooks target the **free Colab T4 GPU**. Runtime -> Change runtime type -
 
 ## License
 
-Code: **Apache 2.0** · Text & figures: **© Arun Shankar, All Rights Reserved**
+Code: **Apache 2.0** · Text & figures: **© Arun Shankar & Michael Chertushkin, All Rights Reserved**

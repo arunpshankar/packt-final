@@ -22,6 +22,13 @@ This is why vanilla DPO eventually plateaus: it exhausts the useful signal in it
 
 The solution is conceptually simple: generate new data from the current policy, collect new preferences on those data, and train again. This is the core idea behind iterative and online alignment methods.
 
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.88\textwidth]{images/ch08_fig01_online_dpo_intro.png}
+\caption{Online DPO at a glance -- generate fresh preferences on the fly and update the policy immediately, no stored dataset required.}
+\label{fig:ch08:online_dpo_intro}
+\end{figure}
+
 \section{Online vs Offline Preference Learning}
 
 Before diving into specific algorithms, it helps to clarify the distinction between online and offline approaches, because this is the axis along which the methods in this chapter differ from vanilla DPO.
@@ -300,9 +307,9 @@ The companion code for this chapter is at \texttt{github.com/arunpshankar/packt-
 \clearpage
 \begin{figure}[!h]
 \centering
-\includegraphics[width=0.88\textwidth]{images/ch08_fig01_online_dpo_overview.png}
-\caption{Online DPO at a glance -- generate fresh preferences on the fly, update immediately, and keep learning without storing data.}
-\label{fig:ch08:online_dpo_overview}
+\includegraphics[width=0.88\textwidth]{images/ch08_fig02_online_dpo_detailed.png}
+\caption{Online DPO in depth -- the full pipeline from offline-to-online transition, the loop, the objective, and practical tips for stable continuous learning.}
+\label{fig:ch08:online_dpo_detailed}
 \end{figure}
 
 \end{chapterenv}

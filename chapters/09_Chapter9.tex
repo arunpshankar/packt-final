@@ -10,6 +10,13 @@ The quality of this scoring signal is the single most important factor determini
 
 This chapter goes deep on reward modeling: how reward models are built, what makes them succeed or fail, and how to evaluate whether yours is good enough. We also cover the value function (the ``critic'' in actor-critic methods), which plays a related but distinct role in PPO and other online RL algorithms.
 
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.88\textwidth]{images/ch09_fig01_reward_modeling_intro.png}
+\caption{Reward modeling at a glance -- humans compare responses, the reward model learns to score them, and those scores drive better aligned policies.}
+\label{fig:ch09:reward_modeling_intro}
+\end{figure}
+
 \section{Reward Model Architecture}
 
 A reward model is structurally simple. You take a pretrained language model, remove the token prediction head (the layer that outputs a probability distribution over vocabulary), and replace it with a \textbf{scalar head}: a single linear layer that maps the model's internal representation to one number.
@@ -253,14 +260,6 @@ Chapter 10 surveys the full landscape of modern RL algorithms, including GRPO, R
 Chapter 11 goes beyond scalar reward models to explore more sophisticated scoring mechanisms: process reward models that score each reasoning step individually, outcome verifiers that check correctness with formal tools, and the dramatic accuracy improvements that step-level feedback enables on reasoning tasks.
 
 
-The companion code for this chapter is at \texttt{github.com/arunpshankar/packt-final} -- swap \texttt{github.com} for \texttt{githubtocolab.com} to open it directly in Colab. The diagram below provides a visual summary of reward modeling covered in this chapter.
-
-\clearpage
-\begin{figure}[!h]
-\centering
-\includegraphics[width=0.88\textwidth]{images/ch09_fig01_reward_modeling_overview.png}
-\caption{Reward modeling at a glance -- collect human preferences, train a scoring model, and use it to drive RL optimization toward aligned outputs.}
-\label{fig:ch09:reward_modeling_overview}
-\end{figure}
+The companion code for this chapter is at \texttt{github.com/arunpshankar/packt-final} -- swap \texttt{github.com} for \texttt{githubtocolab.com} to open it directly in Colab.
 
 \end{chapterenv}

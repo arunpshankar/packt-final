@@ -10,6 +10,13 @@ Some of these algorithms eliminate the value function that makes PPO expensive. 
 
 Before diving into individual algorithms, it helps to see the full landscape at a glance.
 
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.88\textwidth]{images/ch10_fig01_grpo_rloo_kto_intro.png}
+\caption{Modern RL algorithms at a glance -- GRPO, RLOO, and KTO: three ways to update the policy without a critic.}
+\label{fig:ch10:grpo_rloo_kto_intro}
+\end{figure}
+
 \begin{center}
 \begin{tabular}{p{0.10\textwidth}p{0.22\textwidth}p{0.17\textwidth}p{0.12\textwidth}p{0.22\textwidth}}
 \toprule
@@ -371,14 +378,6 @@ Chapter 12 will show how GRPO was applied at scale in the DeepSeek recipe to pro
 \end{tipbox}
 
 
-The companion code for this chapter is at \texttt{github.com/arunpshankar/packt-final} -- swap \texttt{github.com} for \texttt{githubtocolab.com} to open it directly in Colab. The diagram below provides a visual summary of GRPO, RLOO, and KTO covered in this chapter.
-
-\clearpage
-\begin{figure}[!h]
-\centering
-\includegraphics[width=0.88\textwidth]{images/ch10_fig01_grpo_rloo_kto_overview.png}
-\caption{Modern RL algorithms at a glance -- GRPO, RLOO, and KTO: three ways to compute advantages and update the policy without a critic.}
-\label{fig:ch10:grpo_rloo_kto_overview}
-\end{figure}
+The companion code for this chapter is at \texttt{github.com/arunpshankar/packt-final} -- swap \texttt{github.com} for \texttt{githubtocolab.com} to open it directly in Colab.
 
 \end{chapterenv}

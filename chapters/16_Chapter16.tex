@@ -31,7 +31,8 @@ Unlike creative writing or conversation, code has an \textit{objective measure o
 For a code generation task with test suite $\mathcal{T} = \{t_1, \ldots, t_n\}$:
 
 \begin{align*}
-r_{\text{code}}(x, y) = \sum_{i=1}^n \mathbb{1}[\text{test}_i \text{ passes}] + 0.5 \cdot \mathbb{1}[\text{no lint errors}] + 0.3 \cdot \mathbb{1}[\text{has docstring}] + 0.2 \cdot \mathbb{1}[\text{efficient execution}]
+r_{\text{code}}(x, y) =\;& \sum_{i=1}^n \mathbb{1}[\text{test}_i \text{ passes}] + 0.5 \cdot \mathbb{1}[\text{no lint errors}] \\
+&{} + 0.3 \cdot \mathbb{1}[\text{has docstring}] + 0.2 \cdot \mathbb{1}[\text{efficient execution}]
 \end{align*}
 
 \textbf{Evaluation Process:} Model generates code solution, execute with all test inputs, count passing tests, check for bonus conditions (clean style, documentation, efficiency), sum all points for total reward.
@@ -206,12 +207,6 @@ Bot never diagnosed the actual problem (forgotten password)!
 \textbf{What the model learns:} Diagnostic questions early lead to higher terminal reward. Random suggestions without diagnosis yield low reward. Quick resolution earns bonus reward. User satisfaction signals (``thanks!'') provide positive signal.
 
 
-\begin{tipbox}
-\textbf{Companion notebook.} The code for this chapter is in
-\texttt{code/notebooks/part3\_advanced/16\_domain\_specific\_rl.ipynb}
-in the book repository at \texttt{github.com/arunpshankar/packt-final}.
-On GitHub, navigate to the file and replace \texttt{github.com} with
-\texttt{githubtocolab.com} in the URL to open it directly in Colab.
-\end{tipbox}
+The companion code for this chapter is at \texttt{github.com/arunpshankar/packt-final} -- swap \texttt{github.com} for \texttt{githubtocolab.com} to open it directly in Colab.
 
 \end{chapterenv}

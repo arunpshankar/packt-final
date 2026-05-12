@@ -1,0 +1,63 @@
+name: Clean notebook metadata
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'code/notebooks/**/*.ipynb'
+
+permissions:
+  contents: write
+
+jobs:
+  clean:
+    # Skip our own auto-commit to avoid an infinite loop
+    if: "!contains(github.event.head_commit.message, '[auto-clean]')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Strip broken metadata.widgets from notebooks
+        id: strip
+        run: |
+          python3 - <<'PY'
+          import json, glob, os, sys
+
+          changed = []
+          for path in sorted(glob.glob('code/notebooks/**/*.ipynb', recursive=True)):
+              with open(path) as f:
+                  d = json.load(f)
+              md = d.get('metadata', {})
+              w = md.get('widgets')
+              # The Colab-save bug: per-widget entries exist but the top-level
+              # 'state' key is missing on each, which breaks GitHub's nbviewer.
+              if isinstance(w, dict) and any(
+                  isinstance(v, dict) and 'state' not in v for v in w.values()
+              ):
+                  del md['widgets']
+                  with open(path, 'w') as f:
+                      json.dump(d, f, indent=1)
+                      f.write('\n')
+                  changed.append(path)
+
+          if changed:
+              print('Cleaned:', file=sys.stderr)
+              for p in changed:
+                  print(f'  {p}', file=sys.stderr)
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+                  fh.write('changed=true\n')
+          else:
+              print('No notebooks needed cleaning.', file=sys.stderr)
+          PY
+
+      - name: Commit and push cleanup
+        if: steps.strip.outputs.changed == 'true'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add code/notebooks/
+          git commit -m "Auto-clean notebook metadata.widgets [auto-clean]"
+          git push

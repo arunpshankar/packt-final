@@ -585,6 +585,18 @@ Here is the complete RLHF pipeline, from start to finish:
 The original InstructGPT used only about 40 human annotators to collect preference data. The resulting model (1.3 billion parameters with RLHF) was preferred by users over the raw GPT-3 (175 billion parameters). RLHF made a small model with good alignment outperform a much larger model without it. That result catalyzed the entire field.
 \end{infobox}
 
+\begin{tipbox}
+\textbf{Watch reward hacking happen in real time.} The companion notebook for this chapter (\texttt{code/notebooks/part2\_core/06\_rlhf\_ppo.ipynb}) is deliberately sized small -- 15 preference pairs, 50 PPO steps -- so the failure mode the previous sections warned about is the \emph{expected} outcome of the demo, not an edge case. After PPO completes, the comparison cell prints the before/after responses with their reward scores side by side. You will typically see all three of these at once:
+
+\begin{itemize}[nosep]
+    \item \textbf{Reward improvement of +15 or more} between step 1 and step 50. Looks like a win.
+    \item \textbf{Mean KL divergence around 5--10}, far above the \texttt{target\_kl = 0.1} set in the config. The policy has drifted off the leash.
+    \item \textbf{Outputs that are noticeably worse}: repetitive fragments like ``Instruction: Instruction'', the model echoing the question back instead of answering it, or factually incorrect responses that nonetheless score \emph{higher} than the clean SFT answer.
+\end{itemize}
+
+That gap -- the numbers say training succeeded, the outputs say it failed -- is the canonical reward-hacking signature, and reproducing it on your own GPU is the most instructive part of this chapter. With only 15 pairs, the reward model latches onto surface features (long-form ``Instruction:'' phrasing, certain tokens) rather than genuine helpfulness, and PPO happily exploits those features. Production RLHF defends against this with much larger preference datasets (10\,k+ pairs), reward-model ensembles, adaptive KL with a tighter target, and early stopping when KL spikes. None of those alone are sufficient; together they make the technique work. DPO in Chapter 7 sidesteps this whole class of failure by eliminating the reward model.
+\end{tipbox}
+
 \section{Limitations of Classical RLHF}
 
 The RLHF pipeline described in this chapter was a breakthrough, but it has real limitations that have driven the field toward newer approaches.
